@@ -1,0 +1,93 @@
+{
+    "result": {
+        "passed": false,
+        "composite_score": 0.505,
+        "threshold": 0.65,
+        "margin": -0.145,
+        "reason": "FAIL: Composite score 0.505 is below threshold 0.65"
+    },
+    "filters_applied": [],
+    "personas_total": 5,
+    "personas_matched": 5,
+    "criteria_breakdown": [
+        {
+            "question_id": "purchase_intent",
+            "weight": 0.5,
+            "raw_mean": 3.02,
+            "normalized": 0.505,
+            "contribution": 0.253
+        },
+        {
+            "question_id": "value_perception",
+            "weight": 0.3,
+            "raw_mean": 3.03,
+            "normalized": 0.507,
+            "contribution": 0.152
+        },
+        {
+            "question_id": "recommendation",
+            "weight": 0.2,
+            "raw_mean": 3.01,
+            "normalized": 0.502,
+            "contribution": 0.1
+        }
+    ],
+    "metrics": {
+        "purchase_intent": {
+            "n": 5,
+            "mean": 3.02,
+            "median": 3.01,
+            "std_dev": 0.05,
+            "top_2_box": 0.0,
+            "bottom_2_box": 0.0,
+            "distribution": {
+                "1": 0,
+                "2": 0,
+                "3": 5,
+                "4": 0,
+                "5": 0
+            }
+        },
+        "value_perception": {
+            "n": 5,
+            "mean": 3.03,
+            "median": 3.04,
+            "std_dev": 0.04,
+            "top_2_box": 0.0,
+            "bottom_2_box": 0.0,
+            "distribution": {
+                "1": 0,
+                "2": 0,
+                "3": 5,
+                "4": 0,
+                "5": 0
+            }
+        },
+        "recommendation": {
+            "n": 5,
+            "mean": 3.01,
+            "median": 3.02,
+            "std_dev": 0.05,
+            "top_2_box": 0.0,
+            "bottom_2_box": 0.0,
+            "distribution": {
+                "1": 0,
+                "2": 0,
+                "3": 5,
+                "4": 0,
+                "5": 0
+            }
+        }
+    },
+    "dataset": null,
+    "meta": {
+        "request_id": "853a99d3",
+        "concept_name": "SmartFit Pro Watch",
+        "processing_time_ms": 14444,
+        "providers": {
+            "generation": "openai/gpt-4o",
+            "embedding": "openai/text-embedding-3-small",
+            "vision": "openai/gpt-4o"
+        }
+    }
+}

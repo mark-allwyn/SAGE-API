@@ -1,0 +1,59 @@
+"""Shared pytest fixtures for the test suite."""
+
+import pytest
+from fastapi.testclient import TestClient
+
+from sage.main import app
+
+
+@pytest.fixture
+def client():
+    """Create a test client for the FastAPI application."""
+    return TestClient(app)
+
+
+@pytest.fixture
+def valid_test_request():
+    """Create a valid test-concept request payload."""
+    return {
+        "personas": [
+            {"persona_id": "p1", "age": 30, "gender": "F", "income": "high"},
+            {"persona_id": "p2", "age": 45, "gender": "M", "income": "medium"},
+        ],
+        "concept": {
+            "name": "Test Product",
+            "content": [{"type": "text", "data": "A revolutionary new product."}],
+        },
+        "survey_config": {
+            "questions": [
+                {
+                    "id": "q1",
+                    "text": "How likely are you to purchase this product?",
+                    "weight": 1.0,
+                    "ssr_reference_sets": [
+                        [
+                            "Definitely would not buy",
+                            "Probably would not buy",
+                            "Might or might not buy",
+                            "Probably would buy",
+                            "Definitely would buy",
+                        ]
+                    ]
+                    * 6,
+                }
+            ]
+        },
+        "threshold": 0.7,
+    }
+
+
+@pytest.fixture
+def sample_personas():
+    """Create sample personas for testing."""
+    return [
+        {"persona_id": "p1", "age": 25, "gender": "F", "income": "high", "region": "North"},
+        {"persona_id": "p2", "age": 35, "gender": "M", "income": "medium", "region": "South"},
+        {"persona_id": "p3", "age": 45, "gender": "F", "income": "low", "region": "East"},
+        {"persona_id": "p4", "age": 55, "gender": "M", "income": "high", "region": "West"},
+        {"persona_id": "p5", "age": 30, "gender": "F", "income": "medium", "region": "North"},
+    ]
