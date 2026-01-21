@@ -1,0 +1,114 @@
+{
+  "personas": [
+    {
+      "persona_id": "busy_parent",
+      "age": 38,
+      "gender": "F",
+      "income": "high",
+      "household_size": 4,
+      "cooking_skill": "intermediate",
+      "time_available": "limited"
+    },
+    {
+      "persona_id": "young_couple",
+      "age": 29,
+      "gender": "M",
+      "income": "medium",
+      "household_size": 2,
+      "cooking_skill": "beginner",
+      "time_available": "moderate"
+    },
+    {
+      "persona_id": "retired_foodie",
+      "age": 65,
+      "gender": "F",
+      "income": "high",
+      "household_size": 2,
+      "cooking_skill": "advanced",
+      "time_available": "plenty"
+    },
+    {
+      "persona_id": "single_professional",
+      "age": 34,
+      "gender": "M",
+      "income": "high",
+      "household_size": 1,
+      "cooking_skill": "beginner",
+      "time_available": "very limited"
+    },
+    {
+      "persona_id": "college_student",
+      "age": 21,
+      "gender": "F",
+      "income": "low",
+      "household_size": 1,
+      "cooking_skill": "none",
+      "time_available": "limited"
+    },
+    {
+      "persona_id": "health_conscious_mom",
+      "age": 42,
+      "gender": "F",
+      "income": "high",
+      "household_size": 3,
+      "cooking_skill": "intermediate",
+      "time_available": "moderate"
+    }
+  ],
+  "concept": {
+    "name": "FreshChef Meal Kit Service",
+    "content": [
+      {
+        "type": "text",
+        "data": "FreshChef - Restaurant-quality meals made easy at home. Each week, choose from 20+ chef-designed recipes. We deliver pre-portioned, fresh ingredients with step-by-step instructions. Most meals ready in 30 minutes or less. Options for families, couples, and singles. Dietary preferences available: vegetarian, low-carb, gluten-free. Flexible subscription - skip weeks or cancel anytime. Starting at $9.99 per serving."
+      }
+    ]
+  },
+  "survey_config": {
+    "questions": [
+      {
+        "id": "purchase_intent",
+        "text": "How likely are you to subscribe to this meal kit service?",
+        "weight": 0.5,
+        "ssr_reference_sets": [
+          ["Definitely would not subscribe", "Probably would not subscribe", "Might or might not subscribe", "Probably would subscribe", "Definitely would subscribe"],
+          ["No interest", "Little interest", "Some interest", "High interest", "Very high interest"],
+          ["Would never try", "Unlikely to try", "Might try", "Would likely try", "Would definitely try"],
+          ["Not for me", "Probably not for me", "Could be for me", "Probably for me", "Definitely for me"],
+          ["0% likely", "25% likely", "50% likely", "75% likely", "100% likely"],
+          ["Strongly opposed", "Somewhat opposed", "Neutral", "Somewhat interested", "Strongly interested"]
+        ]
+      },
+      {
+        "id": "convenience",
+        "text": "How appealing is the convenience factor of this service to you?",
+        "weight": 0.3,
+        "ssr_reference_sets": [
+          ["Not appealing at all", "Slightly appealing", "Moderately appealing", "Very appealing", "Extremely appealing"],
+          ["No value", "Little value", "Some value", "Good value", "Excellent value"],
+          ["Doesn't help me", "Barely helps", "Somewhat helps", "Really helps", "Game changer"],
+          ["Useless for my lifestyle", "Not very useful", "Somewhat useful", "Very useful", "Essential"],
+          ["Would not save time", "Might save a little time", "Would save some time", "Would save lots of time", "Would save tremendous time"],
+          ["0 stars", "1-2 stars", "3 stars", "4 stars", "5 stars"]
+        ]
+      },
+      {
+        "id": "price_value",
+        "text": "How do you feel about the price of $9.99 per serving?",
+        "weight": 0.2,
+        "ssr_reference_sets": [
+          ["Way too expensive", "Somewhat expensive", "Fair price", "Good value", "Great value"],
+          ["Would never pay this", "Hesitant to pay", "Might pay this", "Happy to pay", "Gladly pay"],
+          ["Overpriced", "Slightly overpriced", "Reasonably priced", "Well priced", "Bargain"],
+          ["Not worth it", "Questionable value", "Acceptable value", "Good value", "Excellent value"],
+          ["Rip off", "Poor deal", "Fair deal", "Good deal", "Steal"],
+          ["Too much for my budget", "Stretches my budget", "Fits my budget", "Easy on my budget", "Very affordable"]
+        ]
+      }
+    ]
+  },
+  "filters": ["income in [high,medium]", "household_size>=2"],
+  "threshold": 0.48,
+  "verbose": true,
+  "output_dataset": true
+}
