@@ -72,4 +72,5 @@ class FullResponse(BaseModel):
     criteria_breakdown: list[CriteriaBreakdown]
     metrics: dict[str, QuestionMetrics]
     dataset: list[dict[str, Any]] | None = None  # if output_dataset=true
+    report: str | None = None  # if include_report=true
     meta: Meta

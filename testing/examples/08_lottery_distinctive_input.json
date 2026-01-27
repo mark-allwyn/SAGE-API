@@ -1,0 +1,202 @@
+{
+  "personas": [
+    {"persona_id": "worker_01", "age": 35, "gender": "M", "income": "medium", "location": "suburban", "interests": ["sports", "family", "cars"]},
+    {"persona_id": "worker_02", "age": 38, "gender": "F", "income": "medium", "location": "urban", "interests": ["cooking", "shopping", "lottery"]},
+    {"persona_id": "worker_03", "age": 42, "gender": "M", "income": "low", "location": "suburban", "interests": ["fishing", "football", "beer"]},
+    {"persona_id": "worker_04", "age": 45, "gender": "F", "income": "medium", "location": "rural", "interests": ["gardening", "baking", "church"]},
+    {"persona_id": "worker_05", "age": 37, "gender": "M", "income": "low", "location": "urban", "interests": ["basketball", "music", "gaming"]},
+    {"persona_id": "worker_06", "age": 51, "gender": "F", "income": "medium", "location": "suburban", "interests": ["reading", "grandchildren", "crafts"]},
+    {"persona_id": "worker_07", "age": 48, "gender": "M", "income": "medium", "location": "suburban", "interests": ["golf", "grilling", "trucks"]},
+    {"persona_id": "worker_08", "age": 36, "gender": "F", "income": "low", "location": "urban", "interests": ["social media", "fashion", "reality TV"]},
+    {"persona_id": "worker_09", "age": 53, "gender": "M", "income": "low", "location": "rural", "interests": ["hunting", "NASCAR", "lottery"]},
+    {"persona_id": "worker_10", "age": 40, "gender": "F", "income": "medium", "location": "suburban", "interests": ["yoga", "wine", "book clubs"]},
+    {"persona_id": "worker_11", "age": 44, "gender": "M", "income": "medium", "location": "urban", "interests": ["baseball", "podcasts", "home improvement"]},
+    {"persona_id": "worker_12", "age": 39, "gender": "F", "income": "low", "location": "suburban", "interests": ["couponing", "kids activities", "lottery"]},
+    {"persona_id": "worker_13", "age": 55, "gender": "M", "income": "medium", "location": "rural", "interests": ["farming", "church", "classic cars"]},
+    {"persona_id": "worker_14", "age": 41, "gender": "F", "income": "medium", "location": "urban", "interests": ["fitness", "brunch", "travel"]},
+    {"persona_id": "worker_15", "age": 47, "gender": "M", "income": "low", "location": "suburban", "interests": ["football", "beer", "lottery"]},
+    {"persona_id": "worker_16", "age": 36, "gender": "F", "income": "medium", "location": "suburban", "interests": ["PTA", "cooking", "Netflix"]},
+    {"persona_id": "worker_17", "age": 50, "gender": "M", "income": "medium", "location": "urban", "interests": ["jazz", "dining out", "sports betting"]},
+    {"persona_id": "worker_18", "age": 43, "gender": "F", "income": "low", "location": "rural", "interests": ["church", "family", "scratch cards"]},
+    {"persona_id": "worker_19", "age": 38, "gender": "M", "income": "medium", "location": "suburban", "interests": ["coaching", "BBQ", "fantasy sports"]},
+    {"persona_id": "worker_20", "age": 52, "gender": "F", "income": "medium", "location": "suburban", "interests": ["quilting", "bingo", "lottery"]},
+    {"persona_id": "worker_21", "age": 35, "gender": "M", "income": "low", "location": "urban", "interests": ["hip hop", "sneakers", "gaming"]},
+    {"persona_id": "worker_22", "age": 46, "gender": "F", "income": "medium", "location": "suburban", "interests": ["gardening", "wine", "true crime"]},
+    {"persona_id": "worker_23", "age": 49, "gender": "M", "income": "medium", "location": "rural", "interests": ["fishing", "woodworking", "lottery"]},
+    {"persona_id": "worker_24", "age": 37, "gender": "F", "income": "low", "location": "urban", "interests": ["dancing", "social media", "beauty"]},
+    {"persona_id": "worker_25", "age": 54, "gender": "M", "income": "low", "location": "suburban", "interests": ["union meetings", "football", "scratch cards"]},
+    {"persona_id": "worker_26", "age": 40, "gender": "F", "income": "medium", "location": "suburban", "interests": ["soccer mom", "meal prep", "Target"]},
+    {"persona_id": "worker_27", "age": 45, "gender": "M", "income": "medium", "location": "urban", "interests": ["poker", "sports", "craft beer"]},
+    {"persona_id": "worker_28", "age": 42, "gender": "F", "income": "low", "location": "rural", "interests": ["canning", "church", "lottery"]},
+    {"persona_id": "worker_29", "age": 36, "gender": "M", "income": "medium", "location": "suburban", "interests": ["video games", "Marvel", "grilling"]},
+    {"persona_id": "worker_30", "age": 51, "gender": "F", "income": "medium", "location": "suburban", "interests": ["book club", "walking", "grandchildren"]},
+    {"persona_id": "worker_31", "age": 48, "gender": "M", "income": "low", "location": "urban", "interests": ["boxing", "dominoes", "lottery"]},
+    {"persona_id": "worker_32", "age": 39, "gender": "F", "income": "medium", "location": "suburban", "interests": ["Pinterest", "DIY", "coffee"]},
+    {"persona_id": "worker_33", "age": 55, "gender": "M", "income": "medium", "location": "rural", "interests": ["tractors", "country music", "church"]},
+    {"persona_id": "worker_34", "age": 41, "gender": "F", "income": "low", "location": "urban", "interests": ["karaoke", "bingo", "scratch cards"]},
+    {"persona_id": "worker_35", "age": 44, "gender": "M", "income": "medium", "location": "suburban", "interests": ["hockey", "camping", "home brewing"]},
+    {"persona_id": "worker_36", "age": 38, "gender": "F", "income": "medium", "location": "suburban", "interests": ["spin class", "brunch", "reality TV"]},
+    {"persona_id": "worker_37", "age": 53, "gender": "M", "income": "low", "location": "rural", "interests": ["dirt bikes", "fishing", "lottery"]},
+    {"persona_id": "worker_38", "age": 40, "gender": "F", "income": "medium", "location": "urban", "interests": ["happy hour", "concerts", "shopping"]},
+    {"persona_id": "worker_39", "age": 47, "gender": "M", "income": "medium", "location": "suburban", "interests": ["golf", "cigars", "sports betting"]},
+    {"persona_id": "worker_40", "age": 35, "gender": "F", "income": "low", "location": "suburban", "interests": ["TikTok", "thrift shopping", "lottery"]},
+    {"persona_id": "worker_41", "age": 50, "gender": "M", "income": "medium", "location": "urban", "interests": ["blues", "BBQ", "bowling"]},
+    {"persona_id": "worker_42", "age": 43, "gender": "F", "income": "medium", "location": "rural", "interests": ["horses", "country living", "crafts"]},
+    {"persona_id": "worker_43", "age": 37, "gender": "M", "income": "low", "location": "urban", "interests": ["soccer", "family", "lottery"]},
+    {"persona_id": "worker_44", "age": 52, "gender": "F", "income": "medium", "location": "suburban", "interests": ["gardening", "church", "bingo"]},
+    {"persona_id": "worker_45", "age": 46, "gender": "M", "income": "medium", "location": "suburban", "interests": ["coaching", "yard work", "fantasy football"]},
+    {"persona_id": "worker_46", "age": 39, "gender": "F", "income": "low", "location": "urban", "interests": ["nail art", "drama shows", "scratch cards"]},
+    {"persona_id": "worker_47", "age": 54, "gender": "M", "income": "low", "location": "rural", "interests": ["mechanic work", "classic rock", "lottery"]},
+    {"persona_id": "worker_48", "age": 41, "gender": "F", "income": "medium", "location": "suburban", "interests": ["wine nights", "book club", "yoga"]},
+    {"persona_id": "worker_49", "age": 49, "gender": "M", "income": "medium", "location": "urban", "interests": ["jazz", "investing", "golf"]},
+    {"persona_id": "worker_50", "age": 36, "gender": "F", "income": "low", "location": "suburban", "interests": ["kids sports", "couponing", "lottery"]}
+  ],
+  "concept": {
+    "name": "JackpotJoe Lottery - The Talking Dog Ad",
+    "content": [
+      {
+        "type": "text",
+        "data": "TV Advertisement Concept for JackpotJoe Lottery - 'The Talking Dog': This humorous 30-second ad opens on Dave, a regular guy in his 40s, sitting on his worn couch watching TV with his scruffy mutt, Biscuit. Dave sighs and says 'Man, I wish I could quit my job.' Suddenly, Biscuit turns to him and speaks in a deep, sophisticated British accent: 'Well David, have you considered the JackpotJoe Lottery? The odds are roughly 1 in 14 million, but statistically speaking, someone has to win.' Dave stares in shock. Biscuit continues: 'Close your mouth David, you look ridiculous. Now fetch me a ticket from the corner store - and some actual biscuits while you're at it.' Cut to Dave at the store, still bewildered, buying a ticket. Final scene: Dave back on the couch, ticket in hand, while Biscuit winks at the camera and says 'JackpotJoe - because even your dog thinks you deserve a shot.' Logo appears with tagline: 'Take Your Shot.' Responsible gaming message displays. The ad uses deadpan humor, an unexpected talking animal, and self-aware lottery odds disclosure to stand out from typical emotional lottery advertising."
+      }
+    ]
+  },
+  "survey_config": {
+    "questions": [
+      {
+        "id": "ad_enjoyment",
+        "text": "How likely is it you would enjoy watching this ad each time you saw it on television?",
+        "weight": 0.1,
+        "ssr_reference_sets": [
+          ["Extremely unlikely", "Not likely", "Maybe", "Likely", "Extremely likely"],
+          ["Definitely would not enjoy", "Probably would not enjoy", "Might enjoy", "Probably would enjoy", "Definitely would enjoy"],
+          ["No chance of enjoying", "Unlikely to enjoy", "Uncertain", "Likely to enjoy", "Certain to enjoy"],
+          ["Would strongly dislike", "Would dislike", "Neutral", "Would like", "Would strongly like"],
+          ["Not at all enjoyable", "Slightly enjoyable", "Moderately enjoyable", "Very enjoyable", "Extremely enjoyable"],
+          ["Would hate watching", "Would not enjoy", "Might be okay", "Would enjoy", "Would love watching"]
+        ]
+      },
+      {
+        "id": "brand_recognition",
+        "text": "If any logos and branding were taken out of this ad, how likely is it that you would still know which brand the ad is about?",
+        "weight": 0.1,
+        "ssr_reference_sets": [
+          ["Extremely unlikely", "Not likely", "Maybe", "Likely", "Extremely likely"],
+          ["Definitely would not recognize", "Probably would not recognize", "Might recognize", "Probably would recognize", "Definitely would recognize"],
+          ["No chance of knowing", "Unlikely to know", "Uncertain", "Likely to know", "Certain to know"],
+          ["Would never identify", "Would rarely identify", "Might identify", "Would likely identify", "Would definitely identify"],
+          ["Not at all recognizable", "Slightly recognizable", "Moderately recognizable", "Very recognizable", "Extremely recognizable"],
+          ["Completely generic", "Mostly generic", "Somewhat distinctive", "Quite distinctive", "Highly distinctive"]
+        ]
+      },
+      {
+        "id": "purchase_intent",
+        "text": "After seeing this ad, how likely would you be to consider buying the products or services provided by the company behind it?",
+        "weight": 0.1,
+        "ssr_reference_sets": [
+          ["Extremely unlikely", "Not likely", "Maybe", "Likely", "Extremely likely"],
+          ["Definitely would not buy", "Probably would not buy", "Might buy", "Probably would buy", "Definitely would buy"],
+          ["No chance of buying", "Unlikely to buy", "Uncertain", "Likely to buy", "Certain to buy"],
+          ["Would never consider", "Would rarely consider", "Might consider", "Would likely consider", "Would definitely consider"],
+          ["Not at all interested", "Slightly interested", "Moderately interested", "Very interested", "Extremely interested"],
+          ["Strong no", "Leaning no", "Neutral", "Leaning yes", "Strong yes"]
+        ]
+      },
+      {
+        "id": "website_visit",
+        "text": "Having seen the ad, how likely would you be to visit their website or download their app?",
+        "weight": 0.1,
+        "ssr_reference_sets": [
+          ["Extremely unlikely", "Not likely", "Maybe", "Likely", "Extremely likely"],
+          ["Definitely would not visit", "Probably would not visit", "Might visit", "Probably would visit", "Definitely would visit"],
+          ["No chance of visiting", "Unlikely to visit", "Uncertain", "Likely to visit", "Certain to visit"],
+          ["Would never look it up", "Would rarely look it up", "Might look it up", "Would likely look it up", "Would definitely look it up"],
+          ["Not at all motivated", "Slightly motivated", "Moderately motivated", "Very motivated", "Extremely motivated"],
+          ["Would avoid entirely", "Would probably skip", "Might check out", "Would probably check out", "Would definitely check out"]
+        ]
+      },
+      {
+        "id": "word_of_mouth",
+        "text": "Having seen the ad, how likely would you be to speak to friends about it?",
+        "weight": 0.1,
+        "ssr_reference_sets": [
+          ["Extremely unlikely", "Not likely", "Maybe", "Likely", "Extremely likely"],
+          ["Definitely would not mention", "Probably would not mention", "Might mention", "Probably would mention", "Definitely would mention"],
+          ["No chance of discussing", "Unlikely to discuss", "Uncertain", "Likely to discuss", "Certain to discuss"],
+          ["Would never bring it up", "Would rarely bring it up", "Might bring it up", "Would likely bring it up", "Would definitely bring it up"],
+          ["Not at all shareable", "Slightly shareable", "Moderately shareable", "Very shareable", "Extremely shareable"],
+          ["Would never talk about", "Would probably not mention", "Might talk about", "Would probably discuss", "Would definitely tell everyone"]
+        ]
+      },
+      {
+        "id": "differentiation",
+        "text": "How likely are you to agree: \"This ad is very different to other ads I've seen.\"",
+        "weight": 0.1,
+        "ssr_reference_sets": [
+          ["Extremely unlikely", "Not likely", "Maybe", "Likely", "Extremely likely"],
+          ["Strongly disagree", "Disagree", "Neither agree nor disagree", "Agree", "Strongly agree"],
+          ["Completely generic", "Mostly generic", "Somewhat unique", "Quite unique", "Very unique"],
+          ["Not at all different", "Slightly different", "Moderately different", "Very different", "Extremely different"],
+          ["Seen many like it", "Seen some like it", "Somewhat familiar", "Fairly original", "Completely original"],
+          ["Nothing stands out", "Little stands out", "Some things stand out", "Much stands out", "Everything stands out"]
+        ]
+      },
+      {
+        "id": "personal_fit",
+        "text": "How likely are you to agree: \"It's my kind of ad.\"",
+        "weight": 0.1,
+        "ssr_reference_sets": [
+          ["Extremely unlikely", "Not likely", "Maybe", "Likely", "Extremely likely"],
+          ["Strongly disagree", "Disagree", "Neither agree nor disagree", "Agree", "Strongly agree"],
+          ["Not for me at all", "Probably not for me", "Might be for me", "Probably for me", "Definitely for me"],
+          ["Does not resonate", "Rarely resonates", "Somewhat resonates", "Often resonates", "Strongly resonates"],
+          ["Completely misses me", "Mostly misses me", "Somewhat connects", "Mostly connects", "Completely connects"],
+          ["Not my style at all", "Not really my style", "Somewhat my style", "Quite my style", "Exactly my style"]
+        ]
+      },
+      {
+        "id": "character_appeal",
+        "text": "How likely are you to agree: \"I like the characters in this ad.\"",
+        "weight": 0.1,
+        "ssr_reference_sets": [
+          ["Extremely unlikely", "Not likely", "Maybe", "Likely", "Extremely likely"],
+          ["Strongly disagree", "Disagree", "Neither agree nor disagree", "Agree", "Strongly agree"],
+          ["Do not like them at all", "Do not really like them", "Feel neutral about them", "Quite like them", "Really like them"],
+          ["Not at all relatable", "Slightly relatable", "Moderately relatable", "Very relatable", "Extremely relatable"],
+          ["Found them off-putting", "Found them uninteresting", "Found them okay", "Found them likeable", "Found them loveable"],
+          ["Could not connect", "Struggled to connect", "Somewhat connected", "Easily connected", "Strongly connected"]
+        ]
+      },
+      {
+        "id": "story_appeal",
+        "text": "How likely are you to agree: \"I like the story being told in this ad.\"",
+        "weight": 0.1,
+        "ssr_reference_sets": [
+          ["Extremely unlikely", "Not likely", "Maybe", "Likely", "Extremely likely"],
+          ["Strongly disagree", "Disagree", "Neither agree nor disagree", "Agree", "Strongly agree"],
+          ["Did not like it at all", "Did not really like it", "Felt neutral about it", "Quite liked it", "Really liked it"],
+          ["Not at all engaging", "Slightly engaging", "Moderately engaging", "Very engaging", "Extremely engaging"],
+          ["Story was terrible", "Story was weak", "Story was okay", "Story was good", "Story was excellent"],
+          ["Not compelling at all", "Slightly compelling", "Moderately compelling", "Very compelling", "Extremely compelling"]
+        ]
+      },
+      {
+        "id": "overall_liking",
+        "text": "How likely are you to agree: \"I liked the ad.\"",
+        "weight": 0.1,
+        "ssr_reference_sets": [
+          ["Extremely unlikely", "Not likely", "Maybe", "Likely", "Extremely likely"],
+          ["Strongly disagree", "Disagree", "Neither agree nor disagree", "Agree", "Strongly agree"],
+          ["Did not like it at all", "Did not really like it", "Felt neutral", "Quite liked it", "Really liked it"],
+          ["Hated it", "Disliked it", "Felt indifferent", "Liked it", "Loved it"],
+          ["Very negative reaction", "Negative reaction", "Neutral reaction", "Positive reaction", "Very positive reaction"],
+          ["Would give 1 star", "Would give 2 stars", "Would give 3 stars", "Would give 4 stars", "Would give 5 stars"]
+        ]
+      }
+    ]
+  },
+  "threshold": 0.55,
+  "output_dataset": true,
+  "options": {
+    "verbose": true
+  }
+}

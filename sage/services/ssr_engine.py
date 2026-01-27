@@ -4,17 +4,20 @@ Semantic Similarity Rating (SSR) engine.
 Implements the SSR methodology from the research paper:
 "LLMs Reproduce Human Purchase Intent via Semantic Similarity Elicitation of Likert Ratings"
 
-The SSR method:
+The SSR method (Section A.4.3, equation 8):
 1. Takes a free-text response from an LLM
 2. Embeds the response and reference anchor statements
 3. Computes cosine similarity to each anchor (representing Likert scale points 1-5)
-4. Converts similarities to a probability mass function using softmax
+4. Converts similarities to PMF via direct normalization (NOT softmax)
 5. Averages across multiple reference sets for robustness
+
+Key formula: p(r) ∝ γ(σ_r, t) - γ(σ_ℓ, t) + ε·δ_ℓ,r
+Where γ = cosine similarity, ℓ = anchor with minimum similarity, ε = 0 (paper default)
 """
 
 import numpy as np
 
-from ..utils.embeddings import cosine_similarity, softmax
+from ..utils.embeddings import cosine_similarity
 from .llm_service import LLMService
 
 
@@ -24,13 +27,15 @@ class SSREngine:
     Maps free-text responses to Likert PMF using embeddings.
     """
 
-    def __init__(self, llm_service: LLMService, temperature: float = 0.5):
+    def __init__(self, llm_service: LLMService, temperature: float = 1.0):
         """
         Initialize SSR engine.
 
         Args:
             llm_service: LLM service for getting embeddings
-            temperature: Softmax temperature (lower = sharper distribution)
+            temperature: Temperature for PMF sharpening (paper equation 9).
+                         p(r,T) ∝ p(r)^(1/T). Paper uses T=1 (no sharpening).
+                         Lower T = sharper distribution.
         """
         self.llm_service = llm_service
         self.temperature = temperature
@@ -44,12 +49,12 @@ class SSREngine:
         """
         Map a free-text response to a Likert PMF and mean.
 
-        This implements the SSR algorithm:
+        This implements the SSR algorithm (paper Section A.4.3):
         1. Get embedding for the response
         2. For each reference set:
            a. Get embeddings for the 5 anchor statements
            b. Compute cosine similarity between response and each anchor
-           c. Convert to PMF using softmax with temperature
+           c. Convert to PMF via direct normalization (equation 8)
         3. Average all PMFs across reference sets
         4. Calculate expected value (mean)
 
@@ -84,12 +89,19 @@ class SSREngine:
         reference_set: list[str],
     ) -> list[float]:
         """
-        Compute PMF using cosine similarity to anchor texts.
+        Compute PMF using cosine similarity - following paper equation (8).
 
-        Following the paper's methodology:
-        1. Compute cosine similarity between response and each anchor
-        2. Subtract minimum similarity to adjust for low variance
-        3. Apply softmax with temperature to get PMF
+        Paper formula: p(r) ∝ γ(σ_r, t) - γ(σ_ℓ, t) + ε·δ_ℓ,r
+        Where:
+        - γ = cosine similarity
+        - σ_r = reference statement for Likert rating r
+        - t = textual response
+        - ℓ = anchor with MINIMUM similarity
+        - ε = epsilon (paper uses ε = 0)
+        - δ_ℓ,r = Kronecker delta (1 when ℓ=r, 0 otherwise)
+
+        Key insight: Probability is DIRECTLY PROPORTIONAL to adjusted similarity.
+        NO softmax/exp() - just normalize directly!
 
         Args:
             response_embedding: Embedding vector of the response
@@ -113,19 +125,23 @@ class SSREngine:
             for anchor_emb in anchor_embeddings
         ]
 
-        # Following the paper: subtract minimum similarity to adjust for low variance
-        # This ensures the resulting PMF has meaningful differences between options
+        # Following paper equation (8): p(r) ∝ γ(σ_r, t) - γ(σ_ℓ, t) + ε·δ_ℓ,r
+        # Where ℓ is the anchor with minimum similarity
+        # Paper uses ε = 0, so we just subtract min and normalize
         min_sim = min(similarities)
-        adjusted_similarities = [s - min_sim for s in similarities]
+        adjusted = [s - min_sim for s in similarities]
 
-        # Add small epsilon to the minimum position to avoid zero probability
-        # This is the paper's approach with epsilon parameter
-        epsilon = 0.01
-        min_idx = similarities.index(min(similarities))
-        adjusted_similarities[min_idx] = epsilon
+        # Add small epsilon to avoid division by zero if all similarities equal
+        epsilon = 1e-10
+        adjusted = [a + epsilon for a in adjusted]
 
-        # Convert to PMF using softmax with temperature
-        pmf = softmax(adjusted_similarities, temperature=self.temperature)
+        # Optional temperature: p(r,T) ∝ p(r)^(1/T)  [paper uses T=1]
+        if self.temperature != 1.0:
+            adjusted = [a ** (1.0 / self.temperature) for a in adjusted]
+
+        # Normalize to get PMF (NO softmax/exp - just direct normalization)
+        total = sum(adjusted)
+        pmf = [a / total for a in adjusted]
 
         return pmf
 

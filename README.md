@@ -17,9 +17,11 @@ SAGE simulates how real consumers would respond to product concepts by:
 ## Features
 
 - **Multi-Provider Support**: OpenAI and AWS Bedrock for generation, embeddings, and vision
+- **Vision Support**: Test image-based concepts (storyboards, ads) via base64-encoded images
 - **Flexible Personas**: Any demographic attributes with SQL-like filtering
 - **Custom Surveys**: Multiple weighted questions with 6 reference sets of 5 anchors each
 - **Rich Output**: Detailed metrics, distributions, and optional raw dataset export
+- **Auto-Generated Reports**: Markdown reports with insights, metrics tables, and sample responses
 - **Docker Ready**: Production-ready containerization
 
 ## Quick Start
@@ -98,7 +100,8 @@ curl -X POST http://localhost:8000/test-concept \
     },
     "threshold": 0.6,
     "verbose": true,
-    "output_dataset": true
+    "output_dataset": true,
+    "include_report": true
   }'
 ```
 
@@ -143,9 +146,31 @@ curl -X POST http://localhost:8000/test-concept \
       "purchase_intent_pmf": [0.1, 0.15, 0.25, 0.3, 0.2],
       "purchase_intent_mean": 3.8
     }
-  ]
+  ],
+  "report": "# Concept Test Report: SmartWatch Pro\n\n## Test Overview\n..."
 }
 ```
+
+## Image-Based Concepts
+
+Test visual concepts like storyboards, ads, or product images using base64-encoded images:
+
+```json
+{
+  "concept": {
+    "name": "Flying Car Ad Storyboard",
+    "content": [
+      {
+        "type": "image",
+        "data": "<base64-encoded-image>",
+        "label": "Storyboard"
+      }
+    ]
+  }
+}
+```
+
+The vision model (GPT-4o by default) interprets the image and personas respond to the visual content. Supported formats: JPEG, PNG, GIF, WebP.
 
 ## Filtering Personas
 
@@ -183,7 +208,15 @@ Use SQL-like expressions to target specific demographics:
 
 ### Request Options
 
-Override defaults per-request:
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `verbose` | bool | `true` | Return full response vs minimal |
+| `output_dataset` | bool | `false` | Include raw persona responses |
+| `include_report` | bool | `false` | Generate markdown report |
+| `threshold` | float | required | Pass/fail score threshold (0-1) |
+| `filters` | list | `[]` | SQL-like persona filters |
+
+Override provider defaults per-request:
 
 ```json
 {
@@ -206,6 +239,18 @@ docker build -t sage-api .
 # Run
 docker run -p 8000:8000 -e OPENAI_API_KEY=sk-... sage-api
 ```
+
+## Generated Reports
+
+When `include_report: true`, the response includes a markdown report with:
+
+- **Test Overview**: Concept name, personas, processing time, providers
+- **Result Summary**: Pass/fail, composite score, threshold, margin
+- **Criteria Breakdown**: Per-question weights, means, contributions
+- **Key Insights**: Top strengths and weaknesses
+- **Metrics Table**: Mean, median, std dev, top/bottom 2 box per question
+- **Sample Responses**: First 3 personas with raw text (requires `output_dataset: true`)
+- **Conclusions**: Summary and recommendations
 
 ## Testing
 
@@ -231,11 +276,12 @@ sage_API/
 │   │   ├── request.py       # Input models
 │   │   └── response.py      # Output models
 │   ├── services/
-│   │   ├── orchestrator.py  # Pipeline coordinator
-│   │   ├── llm_service.py   # LLM abstraction
-│   │   ├── ssr_engine.py    # Semantic Similarity Rating
-│   │   ├── filter_engine.py # Persona filtering
-│   │   └── scoring_engine.py# Metrics & scoring
+│   │   ├── orchestrator.py    # Pipeline coordinator
+│   │   ├── llm_service.py     # LLM abstraction
+│   │   ├── ssr_engine.py      # Semantic Similarity Rating
+│   │   ├── filter_engine.py   # Persona filtering
+│   │   ├── scoring_engine.py  # Metrics & scoring
+│   │   └── report_generator.py# Markdown report generation
 │   └── utils/
 │       └── embeddings.py    # Cosine similarity, softmax
 ├── testing/
