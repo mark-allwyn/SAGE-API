@@ -118,6 +118,7 @@ class TestConceptRequest(BaseModel):
     filters: list[str] = []
     verbose: bool = True
     output_dataset: bool = False
+    include_report: bool = False
     options: Options = Options()
 
     @field_validator("personas")

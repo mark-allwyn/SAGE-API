@@ -2,163 +2,219 @@
 
 This folder contains example inputs and outputs for testing the SAGE API.
 
+## Quick Summary
+
+| # | Experiment | Personas | Result | Score |
+|---|------------|----------|--------|-------|
+| 01 | SmartFit Pro Watch | 5 | FAIL | - |
+| 02 | LuxeGlow Skincare (filtered) | 3 of 6 | FAIL | - |
+| 03 | PowerFuel Protein Bar | 6 | FAIL | - |
+| 04 | BeanBox Coffee | 3 | **PASS** | 0.515 |
+| 05 | FreshChef Meal Kit (filtered) | 4 of 6 | **PASS** | 0.517 |
+| 06 | LuckyDraw Lottery TV Ad | 6 | FAIL | - |
+| 07 | LuckyDraw Lottery (large sample) | 50 | FAIL | - |
+| 08 | JackpotJoe Lottery - Talking Dog | 50 | FAIL | 0.547 |
+| 09 | Neon Velocity - BMW Flying Car (image) | 50 | **PASS** | 0.744 |
+
+---
+
 ## Running Tests
 
-To run any test example:
-
 ```bash
-cat examples/01_smartwatch_input.json | curl -s -X POST http://localhost:8000/test-concept \
+# Run a single test
+cat examples/01_smartwatch_input.json | \
+  curl -s -X POST http://localhost:8000/test-concept \
   -H "Content-Type: application/json" -d @- | python3 -m json.tool
-```
 
-Or run all tests:
-```bash
+# Run all tests
 ./run_tests.sh
 ```
 
-## Examples
+---
 
-### 01 - SmartFit Pro Watch (Basic Test)
+## Experiments
 
-**Input:** `examples/01_smartwatch_input.json`
-**Output:** `examples/01_smartwatch_output.json`
+### 01 - SmartFit Pro Watch
+Basic concept test with 5 personas and 3 weighted questions.
 
-- **Concept:** Fitness smartwatch at $199
-- **Personas:** 5 diverse consumers
-- **Questions:** Purchase intent (50%), Value perception (30%), Recommendation (20%)
-- **Threshold:** 0.65
-- **Result:** FAIL
+| File | Description |
+|------|-------------|
+| `01_smartwatch_input.json` | Input |
+| `01_smartwatch_output.json` | Output |
 
 ---
 
-### 02 - LuxeGlow Skincare (Filtered Test)
+### 02 - LuxeGlow Skincare
+Demonstrates persona filtering (`gender=F`, `age>=25`).
 
-**Input:** `examples/02_skincare_filtered_input.json`
-**Output:** `examples/02_skincare_filtered_output.json`
-
-- **Concept:** Premium Vitamin C serum at $89
-- **Personas:** 6 consumers with varying skincare habits
-- **Filters:** `gender=F`, `age>=25` (3 of 6 matched)
-- **Threshold:** 0.55
-- **Result:** FAIL
+| File | Description |
+|------|-------------|
+| `02_skincare_filtered_input.json` | Input |
+| `02_skincare_filtered_output.json` | Output |
 
 ---
 
-### 03 - PowerFuel Protein Bar (Multi-Question)
+### 03 - PowerFuel Protein Bar
+Multi-question weighted scoring.
 
-**Input:** `examples/03_protein_bar_input.json`
-**Output:** `examples/03_protein_bar_output.json`
-
-- **Concept:** Plant-based protein bar at $2.75/bar
-- **Personas:** 6 consumers
-- **Questions:** Purchase intent (40%), Taste appeal (35%), Price (25%)
-- **Threshold:** 0.60
-- **Result:** FAIL
+| File | Description |
+|------|-------------|
+| `03_protein_bar_input.json` | Input |
+| `03_protein_bar_output.json` | Output |
 
 ---
 
-### 04 - BeanBox Coffee (PASS with Dataset) ✅
+### 04 - BeanBox Coffee
+First passing test with dataset output.
 
-**Input:** `examples/04_coffee_subscription_input.json`
-**Output:** `examples/04_coffee_subscription_output.json`
-
-- **Concept:** Coffee subscription at $32/month
-- **Personas:** 3 coffee drinkers
-- **Threshold:** 0.45
-- **Dataset:** Included (shows raw LLM responses)
-- **Result:** **PASS** (Score: 0.515)
+| File | Description |
+|------|-------------|
+| `04_coffee_subscription_input.json` | Input |
+| `04_coffee_subscription_output.json` | Output with dataset |
 
 ---
 
-### 05 - FreshChef Meal Kit (PASS with Filters & Dataset) ✅
+### 05 - FreshChef Meal Kit
+Passing test with filters and dataset.
 
-**Input:** `examples/05_meal_kit_filtered_input.json`
-**Output:** `examples/05_meal_kit_filtered_output.json`
-
-- **Concept:** Meal kit service at $9.99/serving
-- **Personas:** 6 consumers
-- **Filters:** `income in [high,medium]`, `household_size>=2` (4 of 6 matched)
-- **Questions:** Purchase intent (50%), Convenience (30%), Price value (20%)
-- **Threshold:** 0.48
-- **Dataset:** Included
-- **Result:** **PASS** (Score: 0.517)
+| File | Description |
+|------|-------------|
+| `05_meal_kit_filtered_input.json` | Input |
+| `05_meal_kit_filtered_output.json` | Output with dataset |
 
 ---
 
-## Understanding the Output
+### 06 - LuckyDraw Lottery TV Ad
+Ad effectiveness testing with 10 metrics and 6 personas.
 
-### Result Summary
+| File | Description |
+|------|-------------|
+| `06_lottery_gaming_input.json` | Input |
+| `06_lottery_gaming_output.json` | Output |
+
+---
+
+### 07 - LuckyDraw Lottery (Large Sample)
+Same concept as 06 with 50 personas to test scalability.
+
+| File | Description |
+|------|-------------|
+| `07_lottery_large_sample_input.json` | Input |
+| `07_lottery_large_sample_output.json` | Output with dataset |
+
+---
+
+### 08 - JackpotJoe Lottery - Talking Dog Ad
+Distinctive creative test with humorous talking dog mascot.
+
+| File | Description |
+|------|-------------|
+| `08_lottery_distinctive_input.json` | Input |
+| `08_lottery_distinctive_output.json` | Output with dataset |
+| `08_lottery_distinctive_report.md` | Analysis report |
+
+**Key Findings:**
+- Brand Recognition strongest (3.66)
+- Personal Fit weakest (2.45)
+- Missed threshold by 0.3%
+
+---
+
+### 09 - Neon Velocity - BMW Flying Car Ad
+First image-based concept test using vision model.
+
+| File | Description |
+|------|-------------|
+| `09_neon_velocity_input.json` | Input (with base64 image) |
+| `09_neon_velocity_output.json` | Output with dataset |
+| `09_neon_velocity_report.md` | Analysis report |
+| `../images/09_neon_velocity_storyboard.png` | Source image |
+
+**Key Findings:**
+- Story Appeal strongest (4.27)
+- Character Appeal weakest (2.92)
+- Exceeded threshold by 19.4%
+
+---
+
+## Output Structure
+
+### Result
 ```json
 {
-  "result": {
-    "passed": true,              // Did concept meet threshold?
-    "composite_score": 0.517,    // Weighted normalized score (0-1)
-    "threshold": 0.48,           // Required score to pass
-    "margin": 0.037,             // How far above/below threshold
-    "reason": "PASS: ..."        // Human-readable explanation
-  }
-}
-```
-
-### Criteria Breakdown
-Shows how each question contributed to the composite score:
-```json
-{
-  "question_id": "purchase_intent",
-  "weight": 0.5,           // Weight in composite calculation
-  "raw_mean": 3.08,        // Average Likert score (1-5)
-  "normalized": 0.52,      // Mapped to 0-1 scale: (mean-1)/4
-  "contribution": 0.26     // weight × normalized
+  "passed": true,
+  "composite_score": 0.744,
+  "threshold": 0.55,
+  "margin": 0.194
 }
 ```
 
 ### Metrics Per Question
-Detailed statistics for each survey question:
 ```json
 {
-  "n": 4,                  // Number of personas included
-  "mean": 3.08,            // Average score
-  "median": 3.08,          // Median score
-  "std_dev": 0.03,         // Standard deviation
-  "top_2_box": 0.0,        // % scoring 4 or 5
-  "bottom_2_box": 0.0,     // % scoring 1 or 2
-  "distribution": {...}    // Count per score bucket
+  "mean": 4.27,
+  "median": 4.28,
+  "std_dev": 0.06,
+  "top_2_box": 1.0,
+  "bottom_2_box": 0.0
 }
 ```
 
 ### Dataset (when `output_dataset: true`)
-Full per-persona data with raw LLM responses:
 ```json
 {
-  "persona_id": "busy_parent",
-  "age": 38,
-  "gender": "F",
-  "matched_filter": true,
-  "purchase_intent_text": "I'm quite likely to give FreshChef a try...",
-  "purchase_intent_pmf": [0.185, 0.192, 0.2, 0.21, 0.214],
-  "purchase_intent_mean": 3.08
+  "persona_id": "tech_01",
+  "ad_enjoyment_text": "Raw LLM response...",
+  "ad_enjoyment_pmf": [0.08, 0.06, 0.09, 0.29, 0.48],
+  "ad_enjoyment_mean": 4.03
 }
 ```
 
-## Filter Syntax
+### Report (when `include_report: true`)
+Generates a markdown report in the response:
+```json
+{
+  "report": "# Concept Test Report: My Concept\n\n## Test Overview\n..."
+}
+```
 
-Filters use SQL-like expressions:
+The report includes:
+- Test overview table
+- Overall result summary
+- Criteria breakdown table
+- Key insights (strengths/weaknesses)
+- Metrics summary table
+- Sample responses (first 3 personas, requires `output_dataset: true`)
+- Conclusions and recommendations
+
+---
+
+## Filter Syntax
 
 | Operator | Example | Description |
 |----------|---------|-------------|
 | `=` | `gender=F` | Equals |
 | `!=` | `income!=low` | Not equals |
-| `>` | `age>30` | Greater than |
 | `>=` | `age>=25` | Greater than or equal |
-| `<` | `age<50` | Less than |
-| `<=` | `age<=65` | Less than or equal |
 | `in` | `region in [North,South]` | In list |
 
-## Request Options
+---
 
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `verbose` | bool | `true` | Return full response vs minimal |
-| `output_dataset` | bool | `false` | Include raw persona responses |
-| `threshold` | float | required | Pass/fail score threshold (0-1) |
-| `filters` | list | `[]` | SQL-like persona filters |
+## Files
+
+```
+testing/
+  README.md
+  run_tests.sh
+  examples/
+    01_smartwatch_input.json
+    01_smartwatch_output.json
+    ...
+    09_neon_velocity_input.json
+    09_neon_velocity_output.json
+    09_neon_velocity_report.md
+    08_lottery_distinctive_report.md
+    REPORT_TEMPLATE.md
+  images/
+    09_neon_velocity_storyboard.png
+```

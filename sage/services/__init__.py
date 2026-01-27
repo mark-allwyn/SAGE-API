@@ -19,6 +19,7 @@ from .llm_service import LLMService
 from .ssr_engine import SSREngine
 from .filter_engine import FilterEngine
 from .scoring_engine import ScoringEngine
+from .report_generator import ReportGenerator
 from .orchestrator import Orchestrator
 
 __all__ = [
@@ -37,5 +38,6 @@ __all__ = [
     "SSREngine",
     "FilterEngine",
     "ScoringEngine",
+    "ReportGenerator",
     "Orchestrator",
 ]

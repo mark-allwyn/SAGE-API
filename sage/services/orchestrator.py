@@ -10,6 +10,7 @@ from ..models.request import Concept, Question, TestConceptRequest
 from ..models.response import FullResponse, Meta, MinimalResponse, ProviderInfo
 from .filter_engine import FilterEngine
 from .llm_service import LLMService
+from .report_generator import ReportGenerator
 from .scoring_engine import ScoringEngine
 from .ssr_engine import SSREngine
 
@@ -18,9 +19,10 @@ class Orchestrator:
     """Coordinates the entire pipeline for concept testing."""
 
     def __init__(self):
-        """Initialize orchestrator with filter and scoring engines."""
+        """Initialize orchestrator with filter, scoring, and report engines."""
         self.filter_engine = FilterEngine()
         self.scoring_engine = ScoringEngine()
+        self.report_generator = ReportGenerator()
         self.settings = get_settings()
 
     async def process_request(
@@ -136,6 +138,20 @@ class Orchestrator:
                 responses,
                 match_flags,
                 request.survey_config.questions,
+            )
+
+        # Generate report if requested
+        if request.include_report:
+            response.report = self.report_generator.generate_report(
+                result=result,
+                concept_name=request.concept.name,
+                personas_total=len(request.personas),
+                personas_matched=personas_matched,
+                criteria_breakdown=breakdown,
+                metrics=metrics,
+                meta=response.meta,
+                dataset=response.dataset,
+                filters_applied=request.filters if request.filters else None,
             )
 
         return response

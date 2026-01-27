@@ -35,7 +35,9 @@ class Settings(BaseSettings):
     default_temperature: float = 0.7
 
     # SSR Configuration
-    ssr_softmax_temperature: float = 0.5  # Temperature for softmax in SSR mapping
+    # Temperature for PMF sharpening: p(r,T) ∝ p(r)^(1/T)
+    # Paper uses T=1 (no sharpening). Lower T = sharper distribution.
+    ssr_softmax_temperature: float = 1.0
 
     # Processing Configuration
     batch_size: int = 10  # Number of personas to process in parallel
