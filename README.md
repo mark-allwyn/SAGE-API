@@ -73,42 +73,30 @@ API docs available at: http://localhost:8000/docs
 | `/info` | GET | API configuration and defaults |
 | `/models` | GET | List supported models by provider |
 
+For the full API specification with request/response schemas, field descriptions, and examples, see [`docs/api_specification_full.docx`](docs/api_specification_full.docx).
+
+Interactive API docs are also available at http://localhost:8000/docs when the server is running.
+
 ---
 
-## API Specification
+## Example Request
 
-### POST `/test-concept`
-
-Test a product concept against synthetic consumer personas. Returns scoring results, metrics, optional dataset, and optional report.
-
-#### Request Body
-
-```json
-{
-  "personas": [
-    {
-      "persona_id": "p1",
-      "age": 28,
-      "gender": "F",
-      "country": "United Kingdom",
-      "education": "Undergraduate degree",
-      "language": "English"
-    }
-  ],
-  "concept": {
-    "name": "SmartWatch Pro",
-    "content": [
-      {"type": "text", "data": "A fitness smartwatch with 7-day battery..."},
-      {"type": "image", "data": "<base64-encoded-image>", "label": "Product photo"}
+```bash
+curl -X POST http://localhost:8000/test-concept \
+  -H "Content-Type: application/json" \
+  -d '{
+    "personas": [
+      {"persona_id": "p1", "age": 28, "gender": "F", "country": "United Kingdom"}
     ],
-    "metadata": {"version": "2.0"}
-  },
-  "survey_config": {
-    "questions": [
-      {
+    "concept": {
+      "name": "SmartWatch Pro",
+      "content": [{"type": "text", "data": "A fitness smartwatch with 7-day battery..."}]
+    },
+    "survey_config": {
+      "questions": [{
         "id": "purchase_intent",
         "text": "How likely are you to purchase this product?",
-        "weight": 0.5,
+        "weight": 1.0,
         "ssr_reference_sets": [
           ["Definitely would not buy", "Probably would not buy", "Might or might not buy", "Probably would buy", "Definitely would buy"],
           ["No chance", "Unlikely", "Uncertain", "Likely", "Certain"],
@@ -117,179 +105,13 @@ Test a product concept against synthetic consumer personas. Returns scoring resu
           ["Hard pass", "Soft pass", "On the fence", "Leaning yes", "Absolutely"],
           ["0%", "25%", "50%", "75%", "100%"]
         ]
-      },
-      {
-        "id": "memorability",
-        "text": "To what extent do you agree: 'This product is memorable.'",
-        "weight": 0.5,
-        "ssr_reference_sets": [
-          ["Strongly disagree", "Disagree", "Neither agree nor disagree", "Agree", "Strongly agree"],
-          ["Completely forgettable", "Mostly forgettable", "Somewhat memorable", "Quite memorable", "Extremely memorable"],
-          ["Not at all", "A little", "Moderately", "Very much", "Completely"],
-          ["Totally unmemorable", "Rather unmemorable", "Average", "Rather memorable", "Totally memorable"],
-          ["Would forget immediately", "Would likely forget", "Might remember", "Would likely remember", "Would definitely remember"],
-          ["0% memorable", "25% memorable", "50% memorable", "75% memorable", "100% memorable"]
-        ]
-      }
-    ]
-  },
-  "threshold": 0.6,
-  "filters": ["gender=F", "age>=25"],
-  "verbose": true,
-  "output_dataset": true,
-  "include_report": true,
-  "options": {
-    "generation_provider": "bedrock",
-    "generation_model": "eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
-    "embedding_provider": "bedrock",
-    "embedding_model": "amazon.titan-embed-text-v2:0",
-    "vision_provider": "bedrock",
-    "vision_model": "eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
-    "generation_temperature": 0.7
-  }
-}
-```
-
-#### Request Fields
-
-| Field | Type | Required | Default | Description |
-|-------|------|----------|---------|-------------|
-| `personas` | array | Yes | - | List of persona objects. Each must have `persona_id` (unique). All other fields are flexible demographic attributes. |
-| `concept` | object | Yes | - | Product concept with `name`, `content` array, and optional `metadata`. |
-| `concept.content` | array | Yes | - | Content items. Each has `type` ("text" or "image"), `data` (text string or base64), and optional `label`. |
-| `survey_config` | object | Yes | - | Contains `questions` array. |
-| `survey_config.questions` | array | Yes | - | Survey questions. Weights must sum to 1.0. |
-| `survey_config.questions[].id` | string | Yes | - | Unique question identifier. |
-| `survey_config.questions[].text` | string | Yes | - | Question text shown to the persona. |
-| `survey_config.questions[].weight` | float | Yes | - | Weight for composite score (0-1). All weights must sum to 1.0. |
-| `survey_config.questions[].ssr_reference_sets` | array | Yes | - | Exactly 6 sets of exactly 5 anchor statements each, representing the 1-5 Likert scale. |
-| `threshold` | float | Yes | - | Pass/fail threshold for composite score (0-1). |
-| `filters` | array | No | `[]` | SQL-like filter expressions for persona selection. |
-| `verbose` | bool | No | `true` | `true` returns `FullResponse`, `false` returns `MinimalResponse`. |
-| `output_dataset` | bool | No | `false` | Include raw per-persona response data in output. |
-| `include_report` | bool | No | `false` | Generate markdown report in output. |
-| `options` | object | No | from `.env` | Override provider/model settings for this request. |
-
-#### Options Fields
-
-If omitted, all options default to the values configured in `.env`.
-
-| Field | Type | Default (from `.env`) | Description |
-|-------|------|-----------------------|-------------|
-| `generation_provider` | string | `DEFAULT_GENERATION_PROVIDER` | `"openai"` or `"bedrock"` |
-| `generation_model` | string | `DEFAULT_GENERATION_MODEL` | Model ID for text generation |
-| `embedding_provider` | string | `DEFAULT_EMBEDDING_PROVIDER` | `"openai"` or `"bedrock"` |
-| `embedding_model` | string | `DEFAULT_EMBEDDING_MODEL` | Model ID for embeddings (SSR) |
-| `vision_provider` | string | `DEFAULT_VISION_PROVIDER` | `"openai"` or `"bedrock"` |
-| `vision_model` | string | `DEFAULT_VISION_MODEL` | Model ID for image interpretation |
-| `generation_temperature` | float | `DEFAULT_TEMPERATURE` | LLM temperature (0-2) |
-
-#### Response: `FullResponse` (verbose=true)
-
-```json
-{
-  "result": {
-    "passed": true,
-    "composite_score": 0.650,
-    "threshold": 0.60,
-    "margin": 0.050,
-    "reason": "PASS: Composite score 0.650 meets threshold 0.60"
-  },
-  "filters_applied": ["gender=F", "age>=25"],
-  "personas_total": 90,
-  "personas_matched": 45,
-  "criteria_breakdown": [
-    {
-      "question_id": "purchase_intent",
-      "weight": 0.5,
-      "raw_mean": 3.60,
-      "normalized": 0.650,
-      "contribution": 0.325
+      }]
     },
-    {
-      "question_id": "memorability",
-      "weight": 0.5,
-      "raw_mean": 3.60,
-      "normalized": 0.650,
-      "contribution": 0.325
-    }
-  ],
-  "metrics": {
-    "purchase_intent": {
-      "n": 45,
-      "mean": 3.60,
-      "median": 3.55,
-      "std_dev": 0.42,
-      "top_2_box": 0.40,
-      "bottom_2_box": 0.10,
-      "distribution": {"1": 0, "2": 5, "3": 18, "4": 15, "5": 7}
-    }
-  },
-  "dataset": [
-    {
-      "persona_id": "p1",
-      "age": 28,
-      "gender": "F",
-      "matched_filter": true,
-      "purchase_intent_text": "I'm quite interested in this smartwatch...",
-      "purchase_intent_pmf": [0.05, 0.10, 0.25, 0.35, 0.25],
-      "purchase_intent_mean": 3.80
-    }
-  ],
-  "report": "# Concept Test Report: SmartWatch Pro\n\n## Test Overview\n...",
-  "meta": {
-    "request_id": "a3f2b1c9",
-    "concept_name": "SmartWatch Pro",
-    "processing_time_ms": 45200,
-    "providers": {
-      "generation": "bedrock/eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
-      "embedding": "bedrock/amazon.titan-embed-text-v2:0",
-      "vision": "bedrock/eu.anthropic.claude-sonnet-4-5-20250929-v1:0"
-    }
-  }
-}
-```
-
-#### Response Fields
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `result` | object | Pass/fail result with composite score, threshold, margin, and reason. |
-| `result.passed` | bool | Whether composite score meets threshold. |
-| `result.composite_score` | float | Weighted average of normalized question means (0-1). |
-| `result.threshold` | float | The threshold from the request. |
-| `result.margin` | float | `composite_score - threshold`. Positive = passed. |
-| `result.reason` | string | Human-readable result explanation. |
-| `filters_applied` | array | Filter expressions that were applied. |
-| `personas_total` | int | Total personas in request. |
-| `personas_matched` | int | Personas matching filters (all if no filters). |
-| `criteria_breakdown` | array | Per-question scoring breakdown. |
-| `criteria_breakdown[].raw_mean` | float | Mean Likert score (1-5) for this question. |
-| `criteria_breakdown[].normalized` | float | Normalized score (0-1), computed as `(raw_mean - 1) / 4`. |
-| `criteria_breakdown[].contribution` | float | `normalized * weight` - this question's contribution to composite. |
-| `metrics` | object | Detailed statistics keyed by question ID. |
-| `metrics[].n` | int | Number of responses (matched personas). |
-| `metrics[].mean` | float | Mean of Likert means across personas. |
-| `metrics[].median` | float | Median of Likert means. |
-| `metrics[].std_dev` | float | Standard deviation. |
-| `metrics[].top_2_box` | float | Proportion of personas with mean >= 4.0 (0-1). |
-| `metrics[].bottom_2_box` | float | Proportion of personas with mean <= 2.0 (0-1). |
-| `metrics[].distribution` | object | Count of personas by rounded Likert score (keys "1"-"5"). |
-| `dataset` | array/null | Per-persona raw data (if `output_dataset=true`). Each row has all persona attributes plus `{question_id}_text`, `{question_id}_pmf`, `{question_id}_mean` for each question. |
-| `report` | string/null | Markdown report (if `include_report=true`). |
-| `meta` | object | Request metadata. |
-| `meta.request_id` | string | Unique experiment ID. |
-| `meta.processing_time_ms` | int | Total processing time in milliseconds. |
-| `meta.providers` | object | Provider/model strings used for this request. |
-
-#### Response: `MinimalResponse` (verbose=false)
-
-```json
-{
-  "passed": true,
-  "composite_score": 0.650,
-  "threshold": 0.60
-}
+    "threshold": 0.6,
+    "verbose": true,
+    "output_dataset": true,
+    "include_report": true
+  }'
 ```
 
 ---
@@ -469,6 +291,10 @@ sage_API/
 │   └── tests/
 │       ├── conftest.py        # Test fixtures
 │       └── test_api.py        # API tests
+├── docs/
+│   ├── api_specification_full.docx  # Full API specification
+│   ├── SAGE_Business_Case.md        # Business case and cost model
+│   └── 2510.08338v2.pdf             # SSR methodology paper (Maier et al.)
 ├── testing/
 │   ├── examples/              # Sample inputs, outputs, reports, comparisons
 │   ├── images/                # Test images
@@ -505,15 +331,8 @@ docker run -p 8000:8000 \
 
 MIT
 
-## Citation
+## References
 
-If you use this methodology, please cite:
-
-```bibtex
-@article{maier2025llms,
-  title={LLMs Reproduce Human Purchase Intent via Semantic Similarity Elicitation of Likert Ratings},
-  author={Maier, Maximilian and others},
-  journal={arXiv preprint arXiv:2510.08338},
-  year={2025}
-}
-```
+- **SSR Methodology Paper**: [`docs/2510.08338v2.pdf`](docs/2510.08338v2.pdf) - Maier et al., "LLMs Reproduce Human Purchase Intent via Semantic Similarity Elicitation of Likert Ratings" ([arXiv:2510.08338](https://arxiv.org/abs/2510.08338), 2025)
+- **API Specification**: [`docs/api_specification_full.docx`](docs/api_specification_full.docx)
+- **Business Case**: [`docs/SAGE_Business_Case.md`](docs/SAGE_Business_Case.md)
