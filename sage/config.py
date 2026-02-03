@@ -40,7 +40,8 @@ class Settings(BaseSettings):
     ssr_softmax_temperature: float = 1.0
 
     # Processing Configuration
-    batch_size: int = 10  # Number of personas to process in parallel
+    batch_size: int = int(os.getenv("BATCH_SIZE", "10"))
+    concurrency_limit: int = int(os.getenv("CONCURRENCY_LIMIT", "20"))
     max_tokens: int = 500  # Max tokens for LLM responses
 
     class Config:

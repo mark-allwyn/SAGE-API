@@ -15,6 +15,8 @@ Key formula: p(r) ∝ γ(σ_r, t) - γ(σ_ℓ, t) + ε·δ_ℓ,r
 Where γ = cosine similarity, ℓ = anchor with minimum similarity, ε = 0 (paper default)
 """
 
+import asyncio
+
 import numpy as np
 
 from ..utils.embeddings import cosine_similarity
@@ -69,11 +71,10 @@ class SSREngine:
         # Get response embedding
         response_embedding = await self.llm_service.get_embedding(response_text)
 
-        # Get PMF from each reference set
-        pmfs = []
-        for ref_set in ssr_reference_sets:
-            pmf = await self._compute_pmf_for_set(response_embedding, ref_set)
-            pmfs.append(pmf)
+        # Get PMF from each reference set (in parallel)
+        pmfs = await asyncio.gather(
+            *[self._compute_pmf_for_set(response_embedding, ref_set) for ref_set in ssr_reference_sets]
+        )
 
         # Average all PMFs
         avg_pmf = np.mean(pmfs, axis=0).tolist()

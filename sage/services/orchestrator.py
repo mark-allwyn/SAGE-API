@@ -179,23 +179,19 @@ class Orchestrator:
         Returns:
             List of response dictionaries for each persona
         """
-        responses = []
-        batch_size = self.settings.batch_size
+        semaphore = asyncio.Semaphore(self.settings.concurrency_limit)
 
-        # Process personas in batches
-        for i in range(0, len(personas), batch_size):
-            batch = personas[i : i + batch_size]
-            batch_responses = await asyncio.gather(
-                *[
-                    self._process_single_persona(
-                        llm_service, ssr_engine, p, concept, questions
-                    )
-                    for p in batch
-                ]
-            )
-            responses.extend(batch_responses)
+        async def _process_with_limit(persona):
+            async with semaphore:
+                return await self._process_single_persona(
+                    llm_service, ssr_engine, persona, concept, questions
+                )
 
-        return responses
+        responses = await asyncio.gather(
+            *[_process_with_limit(p) for p in personas]
+        )
+
+        return list(responses)
 
     async def _process_single_persona(
         self,
@@ -222,26 +218,24 @@ class Orchestrator:
         Returns:
             Response dictionary with persona_id and responses
         """
-        persona_responses: dict[str, Any] = {
-            "persona_id": persona["persona_id"],
-            "responses": {},
-        }
-
-        for question in questions:
-            # Generate LLM response (uses vision provider if images present)
+        async def _process_question(question: Question):
             raw_text = await llm_service.generate_response(persona, concept, question)
-
-            # Map to Likert using SSR (uses embedding provider)
             pmf, mean = await ssr_engine.map_response_to_likert(
                 raw_text,
                 question.ssr_reference_sets,
             )
-
-            persona_responses["responses"][question.id] = {
+            return question.id, {
                 "raw_text": raw_text,
                 "pmf": [round(p, 3) for p in pmf],
                 "mean": round(mean, 2),
             }
+
+        results = await asyncio.gather(*[_process_question(q) for q in questions])
+
+        persona_responses: dict[str, Any] = {
+            "persona_id": persona["persona_id"],
+            "responses": {q_id: data for q_id, data in results},
+        }
 
         return persona_responses
 
