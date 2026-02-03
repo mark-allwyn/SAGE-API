@@ -5,113 +5,31 @@
 | Field | Value |
 |-------|-------|
 | **Concept Name** | [Concept Name] |
+| **Concept Type** | [Text / Image / Text + Image (description of format)] |
 | **Personas Tested** | [N] [persona description] |
-| **Processing Time** | [X.X] seconds |
+| **Processing Time** | [X.X] seconds (~X.X minutes) |
 | **Providers** | [generation provider], [embedding provider] |
 
 ---
 
-## Input JSON Structure
+## Concept Description
 
-The input consists of three main sections:
-
-### 1. Personas ([N] synthetic consumers)
-```json
-{
-  "personas": [
-    {"persona_id": "xxx_01", "age": 00, "gender": "X", "income": "xxx", "location": "xxx", "interests": ["...", "...", "..."]},
-    {"persona_id": "xxx_02", "age": 00, "gender": "X", "income": "xxx", "location": "xxx", "interests": ["...", "...", "..."]},
-    ...
-  ]
-}
-```
-
-### 2. Concept (Description)
-```json
-{
-  "concept": {
-    "name": "[Concept Name]",
-    "content": [
-      {
-        "type": "text",
-        "data": "[Full concept description...]"
-      }
-    ]
-  }
-}
-```
-
-### 3. Survey Configuration ([N] Questions with SSR Reference Sets)
-```json
-{
-  "survey_config": {
-    "questions": [
-      {
-        "id": "[question_id]",
-        "text": "[Question text]",
-        "weight": 0.X,
-        "ssr_reference_sets": [
-          ["Option 1", "Option 2", "Option 3", "Option 4", "Option 5"],
-          ...
-        ]
-      },
-      ...
-    ]
-  },
-  "threshold": 0.XX,
-  "output_dataset": true
-}
-```
+[Narrative description of the concept being tested. Describe the format (text, image, storyboard, etc.), the brand, and the key messaging or creative elements. If multiple concepts are being compared, describe each one.]
 
 ---
 
-## Output JSON
-
-### Result Summary
-```json
-{
-  "result": {
-    "passed": [true/false],
-    "composite_score": 0.XXX,
-    "threshold": 0.XX,
-    "margin": [+/-]0.XXX,
-    "reason": "[PASS/FAIL]: [reason message]"
-  }
-}
-```
-
-### Metrics by Question
-```json
-{
-  "metrics": {
-    "[question_id]": {
-      "n": [N],
-      "mean": X.XX,
-      "median": X.XX,
-      "std_dev": X.XX,
-      "top_2_box": X.XX,
-      "bottom_2_box": X.XX,
-      "distribution": {"1": X, "2": X, "3": X, "4": X, "5": X}
-    },
-    ...
-  }
-}
-```
-
----
-
-## Analysis Report
-
-### Overall Result: [PASSED/FAILED] ([Marginal/Clear])
+## Overall Result: [PASSED/FAILED] ([Marginal/Moderate/Clear])
 
 | Metric | Value |
 |--------|-------|
 | **Composite Score** | 0.XXX |
 | **Threshold** | 0.XX |
 | **Margin** | [+/-]0.XXX |
-| **Verdict** | [PASS/FAIL] (by X.X%) |
+| **Verdict** | **[PASS/FAIL]** (exceeded/fell short by X.X%) |
 
-### Criteria Breakdown
+---
+
+## Criteria Breakdown
 
 | Question | Weight | Raw Mean | Normalized | Contribution |
 |----------|--------|----------|------------|--------------|
@@ -119,17 +37,33 @@ The input consists of three main sections:
 | [question_2] | X% | X.XX | 0.XXX | 0.XXX |
 | ... | ... | ... | ... | ... |
 
-### Key Insights
+---
 
-**Strengths:**
-- **[Metric Name]** (X.XX) - [Explanation of why this performed well]
-- **[Metric Name]** (X.XX) - [Explanation]
+## Key Insights
 
-**Weaknesses:**
-- **[Metric Name]** (X.XX) - [Explanation of why this underperformed]
-- **[Metric Name]** (X.XX) - [Explanation]
+### Strengths
 
-### Distribution Analysis
+1. **[Metric Name]** (X.XX) - [Detailed explanation of why this performed well, including distribution data and representative persona feedback.]
+
+2. **[Metric Name]** (X.XX) - [Explanation.]
+
+### Weaknesses
+
+1. **[Metric Name]** (X.XX) - [Detailed explanation of why this underperformed, including distribution data and representative persona feedback.]
+
+2. **[Metric Name]** (X.XX) - [Explanation.]
+
+---
+
+## Metrics Summary
+
+| Question | Mean | Median | Std Dev | Top 2 Box | Bottom 2 Box |
+|----------|------|--------|---------|-----------|--------------|
+| [question_1] | X.XX | X.XX | X.XX | X% | X% |
+| [question_2] | X.XX | X.XX | X.XX | X% | X% |
+| ... | ... | ... | ... | ... | ... |
+
+### Distribution Analysis (All Questions Combined)
 
 | Rating | Count | Percentage |
 |--------|-------|------------|
@@ -139,12 +73,13 @@ The input consists of three main sections:
 | 4 (Positive) | X | X.X% |
 | 5 (Strongly Positive) | X | X.X% |
 
+[Paragraph interpreting the distribution pattern - clustering, spread, presence/absence of extreme responses, and what this suggests about overall sentiment.]
+
 ---
 
 ## Sample Responses
 
-### [persona_id] ([age]y, [Gender], [Income] Income, [Location])
-*Interests: [interest1], [interest2], [interest3]*
+### [persona_id] ([age]y, [Gender], [Country], [Education])
 
 **[Question Name] (X.XX):**
 > "[Response text from persona]"
@@ -154,32 +89,65 @@ The input consists of three main sections:
 
 ---
 
-### [persona_id] ([age]y, [Gender], [Income] Income, [Location])
-*Interests: [interest1], [interest2], [interest3]*
+### [persona_id] ([age]y, [Gender], [Country], [Education])
 
 **[Question Name] (X.XX):**
 > "[Response text from persona]"
 
 ---
 
-## Generated Dataset ([N] rows)
-
-| persona_id | age | gender | income | location | [q1] | [q2] | [q3] | ... |
-|------------|-----|--------|--------|----------|------|------|------|-----|
-| xxx_01 | XX | X | xxx | xxx | X.XX | X.XX | X.XX | ... |
-| xxx_02 | XX | X | xxx | xxx | X.XX | X.XX | X.XX | ... |
-| ... | ... | ... | ... | ... | ... | ... | ... | ... |
+[Include 4-6 sample responses representing a cross-section of demographics and sentiment.]
 
 ---
 
 ## Conclusions
 
-1. **[Main finding about pass/fail result]**
+1. **[Main finding about pass/fail result.]** [Supporting detail about composite score, margin, and what drove the result.]
 
-2. **[Key strength finding]**
+2. **[Key strength finding.]** [Supporting detail.]
 
-3. **[Key weakness finding]**
+3. **[Key weakness finding.]** [Supporting detail.]
 
-4. **[Behavioral insight]**
+4. **[Behavioral insight or comparison finding.]** [Supporting detail.]
 
-5. **[Recommendation for improvement or next steps]**
+5. **[Recommendation for improvement or next steps.]** [Supporting detail.]
+
+---
+
+## Dataset Summary
+
+The full dataset contains [N] persona responses with:
+- Raw text responses for all [N] questions
+- 5-point probability distributions (PMF) from SSR scoring
+- Mean Likert scores (1-5) for each question
+- Demographics: [list of demographic fields]
+
+Available in `[experiment_number]_[slug]_output.json` under the `"dataset"` key.
+
+---
+
+## Appendix: Survey Questions and Response Scales
+
+### Q1: [Question Label]
+**"[Full question text]"**
+
+| Score | Response |
+|-------|----------|
+| 1 | [Scale point 1] |
+| 2 | [Scale point 2] |
+| 3 | [Scale point 3] |
+| 4 | [Scale point 4] |
+| 5 | [Scale point 5] |
+
+### Q2: [Question Label]
+**"[Full question text]"**
+
+| Score | Response |
+|-------|----------|
+| 1 | [Scale point 1] |
+| 2 | [Scale point 2] |
+| 3 | [Scale point 3] |
+| 4 | [Scale point 4] |
+| 5 | [Scale point 5] |
+
+[Repeat for all questions in the survey.]
