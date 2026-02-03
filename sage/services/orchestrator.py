@@ -1,11 +1,15 @@
 """Orchestrator that coordinates the entire synthetic consumer testing pipeline."""
 
 import asyncio
+import logging
 import time
 import uuid
 from typing import Any
 
 from ..config import get_settings
+
+logger = logging.getLogger(__name__)
+
 from ..models.request import Concept, Question, TestConceptRequest
 from ..models.response import FullResponse, Meta, MinimalResponse, ProviderInfo
 from .filter_engine import FilterEngine
@@ -48,6 +52,14 @@ class Orchestrator:
         """
         start_time = time.time()
         request_id = str(uuid.uuid4())[:8]
+
+        logger.info(
+            "[%s] Starting concept test: %s (%d personas, %d questions)",
+            request_id,
+            request.concept.name,
+            len(request.personas),
+            len(request.survey_config.questions),
+        )
 
         # Validate filters
         filter_errors = self.filter_engine.validate_filters(request.filters)
@@ -103,6 +115,13 @@ class Orchestrator:
 
         processing_time = int((time.time() - start_time) * 1000)
 
+        logger.info(
+            "[%s] Pipeline complete in %.1fs - composite score: %.3f",
+            request_id,
+            processing_time / 1000,
+            composite_score,
+        )
+
         # Build response based on verbose flag
         if not request.verbose:
             return MinimalResponse(
@@ -152,6 +171,8 @@ class Orchestrator:
                 meta=response.meta,
                 dataset=response.dataset,
                 filters_applied=request.filters if request.filters else None,
+                questions=request.survey_config.questions,
+                concept=request.concept,
             )
 
         return response
@@ -179,13 +200,30 @@ class Orchestrator:
         Returns:
             List of response dictionaries for each persona
         """
+        total = len(personas)
+        completed = 0
         semaphore = asyncio.Semaphore(self.settings.concurrency_limit)
 
+        logger.info(
+            "Processing %d personas (concurrency limit: %d)",
+            total,
+            self.settings.concurrency_limit,
+        )
+
         async def _process_with_limit(persona):
+            nonlocal completed
             async with semaphore:
-                return await self._process_single_persona(
+                result = await self._process_single_persona(
                     llm_service, ssr_engine, persona, concept, questions
                 )
+                completed += 1
+                logger.info(
+                    "Persona %s complete (%d/%d)",
+                    persona.get("persona_id", "?"),
+                    completed,
+                    total,
+                )
+                return result
 
         responses = await asyncio.gather(
             *[_process_with_limit(p) for p in personas]

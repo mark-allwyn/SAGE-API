@@ -6,12 +6,25 @@ Based on the methodology from "LLMs Reproduce Human Purchase Intent via Semantic
 Elicitation of Likert Ratings" (Maier et al., 2025).
 """
 
+import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from .config import SUPPORTED_MODELS, get_settings
+
+# Configure logging - set up sage loggers explicitly so they work alongside uvicorn
+_log_formatter = logging.Formatter(
+    "%(asctime)s | %(levelname)-7s | %(name)s | %(message)s",
+    datefmt="%H:%M:%S",
+)
+_log_handler = logging.StreamHandler()
+_log_handler.setFormatter(_log_formatter)
+
+_sage_logger = logging.getLogger("sage")
+_sage_logger.setLevel(logging.INFO)
+_sage_logger.addHandler(_log_handler)
 from .models.request import TestConceptRequest
 from .models.response import FullResponse, MinimalResponse
 from .services.orchestrator import Orchestrator

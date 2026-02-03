@@ -1,8 +1,11 @@
 """Unified LLM service that uses the appropriate provider based on configuration."""
 
+import logging
 from typing import Any
 
 from ..models.request import Concept, Options, Question
+
+logger = logging.getLogger(__name__)
 from .llm_provider import (
     EmbeddingProvider,
     GenerationProvider,
@@ -72,20 +75,32 @@ class LLMService:
         ]
 
         if images:
-            # Use vision provider for multimodal
-            return await self.vision_provider.generate_with_images(
+            logger.debug(
+                "Vision generation: persona=%s question=%s (%d images)",
+                persona.get("persona_id", "?"),
+                question.id,
+                len(images),
+            )
+            response = await self.vision_provider.generate_with_images(
                 system_prompt=system_prompt,
                 user_prompt=user_prompt,
                 images=images,
                 temperature=self.options.generation_temperature,
             )
         else:
-            # Use generation provider for text-only
-            return await self.generation_provider.generate(
+            logger.debug(
+                "Text generation: persona=%s question=%s",
+                persona.get("persona_id", "?"),
+                question.id,
+            )
+            response = await self.generation_provider.generate(
                 system_prompt=system_prompt,
                 user_prompt=user_prompt,
                 temperature=self.options.generation_temperature,
             )
+
+        logger.debug("Response (%d chars): %.80s...", len(response), response)
+        return response
 
     async def get_embedding(self, text: str) -> list[float]:
         """Get embedding for a single text."""

@@ -4,6 +4,8 @@ from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
 
+from ..config import get_settings
+
 
 class ContentItem(BaseModel):
     """Content item for a product concept (text or image)."""
@@ -77,21 +79,25 @@ class SurveyConfig(BaseModel):
         return v
 
 
+def _settings():
+    return get_settings()
+
+
 class Options(BaseModel):
     """Configuration options for LLM providers and models."""
 
     # LLM Generation Settings
-    generation_provider: str = "openai"  # "openai" or "bedrock"
-    generation_model: str = "gpt-4o"
-    generation_temperature: float = 0.7
+    generation_provider: str = Field(default_factory=lambda: _settings().default_generation_provider)
+    generation_model: str = Field(default_factory=lambda: _settings().default_generation_model)
+    generation_temperature: float = Field(default_factory=lambda: _settings().default_temperature)
 
     # Embedding Settings (for SSR)
-    embedding_provider: str = "openai"  # "openai" or "bedrock"
-    embedding_model: str = "text-embedding-3-small"
+    embedding_provider: str = Field(default_factory=lambda: _settings().default_embedding_provider)
+    embedding_model: str = Field(default_factory=lambda: _settings().default_embedding_model)
 
     # Vision Settings (for image processing)
-    vision_provider: str = "openai"  # "openai" or "bedrock"
-    vision_model: str = "gpt-4o"
+    vision_provider: str = Field(default_factory=lambda: _settings().default_vision_provider)
+    vision_model: str = Field(default_factory=lambda: _settings().default_vision_model)
 
     @field_validator("generation_provider", "embedding_provider", "vision_provider")
     @classmethod
