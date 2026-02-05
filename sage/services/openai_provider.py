@@ -1,7 +1,8 @@
 """OpenAI provider implementations for generation, embedding, and vision."""
 
-from openai import AsyncOpenAI
+from openai import APIError, AsyncOpenAI
 
+from ..exceptions import ProviderError
 from .llm_provider import EmbeddingProvider, GenerationProvider, VisionProvider
 
 
@@ -25,16 +26,19 @@ class OpenAIGenerationProvider(GenerationProvider):
         temperature: float = 0.7,
     ) -> str:
         """Generate text response using OpenAI."""
-        response = await self.client.chat.completions.create(
-            model=self.model,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt},
-            ],
-            temperature=temperature,
-            max_tokens=500,
-        )
-        return response.choices[0].message.content or ""
+        try:
+            response = await self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ],
+                temperature=temperature,
+                max_tokens=500,
+            )
+            return response.choices[0].message.content or ""
+        except APIError as e:
+            raise ProviderError("openai", str(e)) from e
 
 
 class OpenAIEmbeddingProvider(EmbeddingProvider):
@@ -53,19 +57,25 @@ class OpenAIEmbeddingProvider(EmbeddingProvider):
 
     async def embed(self, texts: list[str]) -> list[list[float]]:
         """Embed multiple texts."""
-        response = await self.client.embeddings.create(
-            model=self.model,
-            input=texts,
-        )
-        return [d.embedding for d in response.data]
+        try:
+            response = await self.client.embeddings.create(
+                model=self.model,
+                input=texts,
+            )
+            return [d.embedding for d in response.data]
+        except APIError as e:
+            raise ProviderError("openai", str(e)) from e
 
     async def embed_single(self, text: str) -> list[float]:
         """Embed a single text."""
-        response = await self.client.embeddings.create(
-            model=self.model,
-            input=text,
-        )
-        return response.data[0].embedding
+        try:
+            response = await self.client.embeddings.create(
+                model=self.model,
+                input=text,
+            )
+            return response.data[0].embedding
+        except APIError as e:
+            raise ProviderError("openai", str(e)) from e
 
     async def embed_with_cache(self, texts: list[str]) -> list[list[float]]:
         """Embed texts with caching (for anchor texts)."""
@@ -111,13 +121,16 @@ class OpenAIVisionProvider(VisionProvider):
         # Add text prompt
         content.append({"type": "text", "text": user_prompt})
 
-        response = await self.client.chat.completions.create(
-            model=self.model,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": content},
-            ],
-            temperature=temperature,
-            max_tokens=500,
-        )
-        return response.choices[0].message.content or ""
+        try:
+            response = await self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": content},
+                ],
+                temperature=temperature,
+                max_tokens=500,
+            )
+            return response.choices[0].message.content or ""
+        except APIError as e:
+            raise ProviderError("openai", str(e)) from e

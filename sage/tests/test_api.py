@@ -273,3 +273,75 @@ class TestRequestValidation:
         )
 
         assert response.status_code == 422
+
+
+class TestErrorHandling:
+    """Test error handling for invalid model configurations."""
+
+    def test_invalid_model_for_provider(self, client):
+        """Test that an invalid model for a valid provider is rejected."""
+        response = client.post(
+            "/test-concept",
+            json={
+                "personas": [{"persona_id": "p1", "age": 30}],
+                "concept": {
+                    "name": "Test",
+                    "content": [{"type": "text", "data": "Test content"}],
+                },
+                "survey_config": {
+                    "questions": [
+                        {
+                            "id": "q1",
+                            "text": "Test?",
+                            "weight": 1.0,
+                            "ssr_reference_sets": [["a", "b", "c", "d", "e"]] * 6,
+                        }
+                    ]
+                },
+                "threshold": 0.7,
+                "options": {
+                    "generation_provider": "openai",
+                    "generation_model": "nonexistent-model",
+                    "embedding_provider": "openai",
+                    "embedding_model": "text-embedding-3-small",
+                    "vision_provider": "openai",
+                    "vision_model": "gpt-4o",
+                },
+            },
+        )
+
+        assert response.status_code == 422
+
+    def test_embedding_model_used_for_generation(self, client):
+        """Test that using an embedding model for generation is rejected."""
+        response = client.post(
+            "/test-concept",
+            json={
+                "personas": [{"persona_id": "p1", "age": 30}],
+                "concept": {
+                    "name": "Test",
+                    "content": [{"type": "text", "data": "Test content"}],
+                },
+                "survey_config": {
+                    "questions": [
+                        {
+                            "id": "q1",
+                            "text": "Test?",
+                            "weight": 1.0,
+                            "ssr_reference_sets": [["a", "b", "c", "d", "e"]] * 6,
+                        }
+                    ]
+                },
+                "threshold": 0.7,
+                "options": {
+                    "generation_provider": "openai",
+                    "generation_model": "text-embedding-3-small",
+                    "embedding_provider": "openai",
+                    "embedding_model": "text-embedding-3-small",
+                    "vision_provider": "openai",
+                    "vision_model": "gpt-4o",
+                },
+            },
+        )
+
+        assert response.status_code == 422

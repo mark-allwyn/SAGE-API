@@ -2,9 +2,9 @@
 
 from typing import Any
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
-from ..config import get_settings
+from ..config import SUPPORTED_MODELS, get_settings
 
 
 class ContentItem(BaseModel):
@@ -112,6 +112,31 @@ class Options(BaseModel):
         if v < 0 or v > 2:
             raise ValueError("Temperature must be between 0 and 2")
         return v
+
+    @model_validator(mode="after")
+    def validate_models(self) -> "Options":
+        errors = []
+        gen_models = SUPPORTED_MODELS.get(self.generation_provider, {}).get("generation", [])
+        if self.generation_model not in gen_models:
+            errors.append(
+                f"generation_model '{self.generation_model}' not supported for "
+                f"provider '{self.generation_provider}'. Valid: {gen_models}"
+            )
+        emb_models = SUPPORTED_MODELS.get(self.embedding_provider, {}).get("embedding", [])
+        if self.embedding_model not in emb_models:
+            errors.append(
+                f"embedding_model '{self.embedding_model}' not supported for "
+                f"provider '{self.embedding_provider}'. Valid: {emb_models}"
+            )
+        vis_models = SUPPORTED_MODELS.get(self.vision_provider, {}).get("vision", [])
+        if self.vision_model not in vis_models:
+            errors.append(
+                f"vision_model '{self.vision_model}' not supported for "
+                f"provider '{self.vision_provider}'. Valid: {vis_models}"
+            )
+        if errors:
+            raise ValueError("; ".join(errors))
+        return self
 
 
 class TestConceptRequest(BaseModel):

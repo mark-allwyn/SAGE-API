@@ -44,6 +44,14 @@ def valid_test_request():
             ]
         },
         "threshold": 0.7,
+        "options": {
+            "generation_provider": "openai",
+            "generation_model": "gpt-4o",
+            "embedding_provider": "openai",
+            "embedding_model": "text-embedding-3-small",
+            "vision_provider": "openai",
+            "vision_model": "gpt-4o",
+        },
     }
 
 

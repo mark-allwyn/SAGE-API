@@ -24,6 +24,11 @@ class Settings(BaseSettings):
     api_host: str = os.getenv("API_HOST", "0.0.0.0")
     api_port: int = int(os.getenv("API_PORT", "8000"))
     debug: bool = os.getenv("DEBUG", "false").lower() == "true"
+    cors_origins: list[str] = [
+        o.strip()
+        for o in os.getenv("CORS_ORIGINS", "http://localhost:3000,http://localhost:8000").split(",")
+        if o.strip()
+    ]
 
     # Default LLM Settings
     default_generation_provider: str = os.getenv("DEFAULT_GENERATION_PROVIDER", "openai")
@@ -78,28 +83,50 @@ SUPPORTED_MODELS = {
     },
     "bedrock": {
         "generation": [
-            # EU inference profiles (for eu-central-1 region)
+            # Anthropic Claude (EU inference profiles)
+            "eu.anthropic.claude-opus-4-5-20251101-v1:0",
             "eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
             "eu.anthropic.claude-sonnet-4-20250514-v1:0",
             "eu.anthropic.claude-3-7-sonnet-20250219-v1:0",
+            "eu.anthropic.claude-3-5-sonnet-20240620-v1:0",
+            "eu.anthropic.claude-3-sonnet-20240229-v1:0",
             "eu.anthropic.claude-haiku-4-5-20251001-v1:0",
-            # Direct model IDs (available in eu-central-1)
-            "anthropic.claude-3-5-sonnet-20240620-v1:0",
-            "anthropic.claude-3-haiku-20240307-v1:0",
+            "eu.anthropic.claude-3-haiku-20240307-v1:0",
+            # Amazon Nova
+            "eu.amazon.nova-pro-v1:0",
+            "eu.amazon.nova-lite-v1:0",
+            "eu.amazon.nova-2-lite-v1:0",
+            "eu.amazon.nova-micro-v1:0",
+            # Mistral
+            "eu.mistral.pixtral-large-2502-v1:0",
+            # Meta Llama
+            "eu.meta.llama3-2-3b-instruct-v1:0",
+            "eu.meta.llama3-2-1b-instruct-v1:0",
         ],
         "embedding": [
+            # Amazon Titan
             "amazon.titan-embed-text-v2:0",
             "amazon.titan-embed-text-v1",
+            # Cohere
+            "cohere.embed-english-v3",
+            "cohere.embed-multilingual-v3",
         ],
         "vision": [
-            # EU inference profiles (for eu-central-1 region)
+            # Anthropic Claude (EU inference profiles)
+            "eu.anthropic.claude-opus-4-5-20251101-v1:0",
             "eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
             "eu.anthropic.claude-sonnet-4-20250514-v1:0",
             "eu.anthropic.claude-3-7-sonnet-20250219-v1:0",
+            "eu.anthropic.claude-3-5-sonnet-20240620-v1:0",
+            "eu.anthropic.claude-3-sonnet-20240229-v1:0",
             "eu.anthropic.claude-haiku-4-5-20251001-v1:0",
-            # Direct model IDs (available in eu-central-1)
-            "anthropic.claude-3-5-sonnet-20240620-v1:0",
-            "anthropic.claude-3-haiku-20240307-v1:0",
+            "eu.anthropic.claude-3-haiku-20240307-v1:0",
+            # Amazon Nova (Pro, Lite, 2 Lite - not Micro)
+            "eu.amazon.nova-pro-v1:0",
+            "eu.amazon.nova-lite-v1:0",
+            "eu.amazon.nova-2-lite-v1:0",
+            # Mistral
+            "eu.mistral.pixtral-large-2502-v1:0",
         ],
     },
 }

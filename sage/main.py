@@ -13,6 +13,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from .config import SUPPORTED_MODELS, get_settings
+from .exceptions import ConfigurationError, ProviderError, ValidationError
 
 # Configure logging - set up sage loggers explicitly so they work alongside uvicorn
 _log_formatter = logging.Formatter(
@@ -25,6 +26,8 @@ _log_handler.setFormatter(_log_formatter)
 _sage_logger = logging.getLogger("sage")
 _sage_logger.setLevel(logging.INFO)
 _sage_logger.addHandler(_log_handler)
+logger = logging.getLogger(__name__)
+
 from .models.request import TestConceptRequest
 from .models.response import FullResponse, MinimalResponse
 from .services.orchestrator import Orchestrator
@@ -65,7 +68,7 @@ This API simulates how real consumers would respond to product concepts by:
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=settings.cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -104,10 +107,24 @@ async def test_concept(
     try:
         result = await orchestrator.process_request(request)
         return result
-    except ValueError as e:
+    except ProviderError as e:
+        logger.exception("Provider error during concept test")
+        raise HTTPException(
+            status_code=502,
+            detail={
+                "error_type": "provider_error",
+                "provider": e.provider,
+                "message": str(e),
+            },
+        )
+    except (ValidationError, ValueError) as e:
         raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Internal error: {str(e)}")
+    except ConfigurationError as e:
+        logger.exception("Configuration error during concept test")
+        raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        logger.exception("Unexpected error during concept test")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @app.get(

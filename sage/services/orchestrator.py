@@ -66,6 +66,24 @@ class Orchestrator:
         if filter_errors:
             raise ValueError(f"Invalid filters: {'; '.join(filter_errors)}")
 
+        # Step 1: Apply filters BEFORE generation (cheap)
+        filtered_personas, match_flags = self.filter_engine.apply_filters(
+            request.personas,
+            request.filters,
+        )
+        personas_matched = sum(match_flags)
+
+        if personas_matched == 0:
+            raise ValueError("No personas matched the specified filters")
+
+        if request.filters:
+            logger.info(
+                "[%s] Filtered %d personas to %d",
+                request_id,
+                len(request.personas),
+                personas_matched,
+            )
+
         # Create LLM service with specified providers/models
         llm_service = LLMService(request.options)
 
@@ -75,30 +93,21 @@ class Orchestrator:
             temperature=self.settings.ssr_softmax_temperature,
         )
 
-        # Step 1: Generate responses for all personas
+        # Step 2: Generate responses for ONLY matched personas
         responses = await self._generate_all_responses(
             llm_service,
             ssr_engine,
-            request.personas,
+            filtered_personas,
             request.concept,
             request.survey_config.questions,
         )
 
-        # Step 2: Apply filters
-        _, match_flags = self.filter_engine.apply_filters(
-            request.personas,
-            request.filters,
-        )
-        personas_matched = sum(match_flags)
-
-        if personas_matched == 0:
-            raise ValueError("No personas matched the specified filters")
-
-        # Step 3: Calculate metrics (using filtered personas)
+        # Step 3: Calculate metrics (all responses are matched, so all flags True)
+        all_matched = [True] * len(responses)
         metrics = self.scoring_engine.calculate_metrics(
             responses,
             request.survey_config.questions,
-            match_flags,
+            all_matched,
         )
 
         # Step 4: Calculate composite score
@@ -153,9 +162,9 @@ class Orchestrator:
         # Add dataset if requested
         if request.output_dataset:
             response.dataset = self._build_dataset(
-                request.personas,
+                filtered_personas,
                 responses,
-                match_flags,
+                all_matched,
                 request.survey_config.questions,
             )
 
