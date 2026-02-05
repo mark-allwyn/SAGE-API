@@ -1,0 +1,1001 @@
+{
+  "personas": [
+    {
+      "persona_id": "uk_f_01",
+      "age": 24,
+      "gender": "F",
+      "country": "United Kingdom",
+      "education": "Undergraduate degree",
+      "language": "English"
+    },
+    {
+      "persona_id": "uk_f_02",
+      "age": 29,
+      "gender": "F",
+      "country": "United Kingdom",
+      "education": "Undergraduate degree",
+      "language": "English"
+    },
+    {
+      "persona_id": "uk_f_03",
+      "age": 28,
+      "gender": "F",
+      "country": "United Kingdom",
+      "education": "Undergraduate degree",
+      "language": "English"
+    },
+    {
+      "persona_id": "uk_f_04",
+      "age": 24,
+      "gender": "F",
+      "country": "United Kingdom",
+      "education": "Doctorate",
+      "language": "English"
+    },
+    {
+      "persona_id": "uk_f_05",
+      "age": 38,
+      "gender": "F",
+      "country": "United Kingdom",
+      "education": "Undergraduate degree",
+      "language": "English"
+    },
+    {
+      "persona_id": "uk_f_06",
+      "age": 39,
+      "gender": "F",
+      "country": "United Kingdom",
+      "education": "Postgraduate degree",
+      "language": "English"
+    },
+    {
+      "persona_id": "uk_f_07",
+      "age": 22,
+      "gender": "F",
+      "country": "United Kingdom",
+      "education": "Undergraduate degree",
+      "language": "English"
+    },
+    {
+      "persona_id": "uk_f_08",
+      "age": 23,
+      "gender": "F",
+      "country": "United Kingdom",
+      "education": "Undergraduate degree",
+      "language": "English"
+    },
+    {
+      "persona_id": "uk_f_09",
+      "age": 28,
+      "gender": "F",
+      "country": "United Kingdom",
+      "education": "Doctorate",
+      "language": "English"
+    },
+    {
+      "persona_id": "uk_f_10",
+      "age": 40,
+      "gender": "F",
+      "country": "United Kingdom",
+      "education": "Undergraduate degree",
+      "language": "English"
+    },
+    {
+      "persona_id": "uk_f_11",
+      "age": 38,
+      "gender": "F",
+      "country": "United Kingdom",
+      "education": "Undergraduate degree",
+      "language": "English"
+    },
+    {
+      "persona_id": "uk_f_12",
+      "age": 38,
+      "gender": "F",
+      "country": "United Kingdom",
+      "education": "Postgraduate degree",
+      "language": "English"
+    },
+    {
+      "persona_id": "uk_f_13",
+      "age": 28,
+      "gender": "F",
+      "country": "United Kingdom",
+      "education": "Postgraduate degree",
+      "language": "English"
+    },
+    {
+      "persona_id": "uk_f_14",
+      "age": 39,
+      "gender": "F",
+      "country": "United Kingdom",
+      "education": "Postgraduate degree",
+      "language": "English"
+    },
+    {
+      "persona_id": "uk_f_15",
+      "age": 21,
+      "gender": "F",
+      "country": "United Kingdom",
+      "education": "Undergraduate degree",
+      "language": "English"
+    },
+    {
+      "persona_id": "uk_m_01",
+      "age": 34,
+      "gender": "M",
+      "country": "United Kingdom",
+      "education": "Postgraduate degree",
+      "language": "English"
+    },
+    {
+      "persona_id": "uk_m_02",
+      "age": 29,
+      "gender": "M",
+      "country": "United Kingdom",
+      "education": "Undergraduate degree",
+      "language": "English"
+    },
+    {
+      "persona_id": "uk_m_03",
+      "age": 27,
+      "gender": "M",
+      "country": "United Kingdom",
+      "education": "Postgraduate degree",
+      "language": "English"
+    },
+    {
+      "persona_id": "uk_m_04",
+      "age": 24,
+      "gender": "M",
+      "country": "United Kingdom",
+      "education": "Undergraduate degree",
+      "language": "English"
+    },
+    {
+      "persona_id": "uk_m_05",
+      "age": 33,
+      "gender": "M",
+      "country": "United Kingdom",
+      "education": "Undergraduate degree",
+      "language": "English"
+    },
+    {
+      "persona_id": "uk_m_06",
+      "age": 32,
+      "gender": "M",
+      "country": "United Kingdom",
+      "education": "Postgraduate degree",
+      "language": "English"
+    },
+    {
+      "persona_id": "uk_m_07",
+      "age": 40,
+      "gender": "M",
+      "country": "United Kingdom",
+      "education": "Postgraduate degree",
+      "language": "English"
+    },
+    {
+      "persona_id": "uk_m_08",
+      "age": 22,
+      "gender": "M",
+      "country": "United Kingdom",
+      "education": "Doctorate",
+      "language": "English"
+    },
+    {
+      "persona_id": "uk_m_09",
+      "age": 35,
+      "gender": "M",
+      "country": "United Kingdom",
+      "education": "Doctorate",
+      "language": "English"
+    },
+    {
+      "persona_id": "uk_m_10",
+      "age": 24,
+      "gender": "M",
+      "country": "United Kingdom",
+      "education": "Postgraduate degree",
+      "language": "English"
+    },
+    {
+      "persona_id": "uk_m_11",
+      "age": 23,
+      "gender": "M",
+      "country": "United Kingdom",
+      "education": "Doctorate",
+      "language": "English"
+    },
+    {
+      "persona_id": "uk_m_12",
+      "age": 30,
+      "gender": "M",
+      "country": "United Kingdom",
+      "education": "Doctorate",
+      "language": "English"
+    },
+    {
+      "persona_id": "uk_m_13",
+      "age": 40,
+      "gender": "M",
+      "country": "United Kingdom",
+      "education": "Postgraduate degree",
+      "language": "English"
+    },
+    {
+      "persona_id": "uk_m_14",
+      "age": 39,
+      "gender": "M",
+      "country": "United Kingdom",
+      "education": "Undergraduate degree",
+      "language": "English"
+    },
+    {
+      "persona_id": "uk_m_15",
+      "age": 23,
+      "gender": "M",
+      "country": "United Kingdom",
+      "education": "Undergraduate degree",
+      "language": "English"
+    },
+    {
+      "persona_id": "gr_f_01",
+      "age": 28,
+      "gender": "F",
+      "country": "Greece",
+      "education": "Postgraduate degree",
+      "language": "English"
+    },
+    {
+      "persona_id": "gr_f_02",
+      "age": 23,
+      "gender": "F",
+      "country": "Greece",
+      "education": "Undergraduate degree",
+      "language": "English"
+    },
+    {
+      "persona_id": "gr_f_03",
+      "age": 24,
+      "gender": "F",
+      "country": "Greece",
+      "education": "Postgraduate degree",
+      "language": "English"
+    },
+    {
+      "persona_id": "gr_f_04",
+      "age": 29,
+      "gender": "F",
+      "country": "Greece",
+      "education": "Postgraduate degree",
+      "language": "English"
+    },
+    {
+      "persona_id": "gr_f_05",
+      "age": 32,
+      "gender": "F",
+      "country": "Greece",
+      "education": "Undergraduate degree",
+      "language": "English"
+    },
+    {
+      "persona_id": "gr_f_06",
+      "age": 32,
+      "gender": "F",
+      "country": "Greece",
+      "education": "Postgraduate degree",
+      "language": "English"
+    },
+    {
+      "persona_id": "gr_f_07",
+      "age": 27,
+      "gender": "F",
+      "country": "Greece",
+      "education": "Doctorate",
+      "language": "English"
+    },
+    {
+      "persona_id": "gr_f_08",
+      "age": 29,
+      "gender": "F",
+      "country": "Greece",
+      "education": "Doctorate",
+      "language": "English"
+    },
+    {
+      "persona_id": "gr_f_09",
+      "age": 23,
+      "gender": "F",
+      "country": "Greece",
+      "education": "Doctorate",
+      "language": "English"
+    },
+    {
+      "persona_id": "gr_f_10",
+      "age": 26,
+      "gender": "F",
+      "country": "Greece",
+      "education": "Doctorate",
+      "language": "English"
+    },
+    {
+      "persona_id": "gr_f_11",
+      "age": 28,
+      "gender": "F",
+      "country": "Greece",
+      "education": "Undergraduate degree",
+      "language": "English"
+    },
+    {
+      "persona_id": "gr_f_12",
+      "age": 35,
+      "gender": "F",
+      "country": "Greece",
+      "education": "Postgraduate degree",
+      "language": "English"
+    },
+    {
+      "persona_id": "gr_f_13",
+      "age": 29,
+      "gender": "F",
+      "country": "Greece",
+      "education": "Doctorate",
+      "language": "English"
+    },
+    {
+      "persona_id": "gr_f_14",
+      "age": 38,
+      "gender": "F",
+      "country": "Greece",
+      "education": "Undergraduate degree",
+      "language": "English"
+    },
+    {
+      "persona_id": "gr_f_15",
+      "age": 31,
+      "gender": "F",
+      "country": "Greece",
+      "education": "Undergraduate degree",
+      "language": "English"
+    },
+    {
+      "persona_id": "gr_m_01",
+      "age": 28,
+      "gender": "M",
+      "country": "Greece",
+      "education": "Undergraduate degree",
+      "language": "English"
+    },
+    {
+      "persona_id": "gr_m_02",
+      "age": 31,
+      "gender": "M",
+      "country": "Greece",
+      "education": "Postgraduate degree",
+      "language": "English"
+    },
+    {
+      "persona_id": "gr_m_03",
+      "age": 29,
+      "gender": "M",
+      "country": "Greece",
+      "education": "Undergraduate degree",
+      "language": "English"
+    },
+    {
+      "persona_id": "gr_m_04",
+      "age": 27,
+      "gender": "M",
+      "country": "Greece",
+      "education": "Doctorate",
+      "language": "English"
+    },
+    {
+      "persona_id": "gr_m_05",
+      "age": 31,
+      "gender": "M",
+      "country": "Greece",
+      "education": "Undergraduate degree",
+      "language": "English"
+    },
+    {
+      "persona_id": "gr_m_06",
+      "age": 36,
+      "gender": "M",
+      "country": "Greece",
+      "education": "Postgraduate degree",
+      "language": "English"
+    },
+    {
+      "persona_id": "gr_m_07",
+      "age": 35,
+      "gender": "M",
+      "country": "Greece",
+      "education": "Undergraduate degree",
+      "language": "English"
+    },
+    {
+      "persona_id": "gr_m_08",
+      "age": 29,
+      "gender": "M",
+      "country": "Greece",
+      "education": "Undergraduate degree",
+      "language": "English"
+    },
+    {
+      "persona_id": "gr_m_09",
+      "age": 28,
+      "gender": "M",
+      "country": "Greece",
+      "education": "Doctorate",
+      "language": "English"
+    },
+    {
+      "persona_id": "gr_m_10",
+      "age": 38,
+      "gender": "M",
+      "country": "Greece",
+      "education": "Doctorate",
+      "language": "English"
+    },
+    {
+      "persona_id": "gr_m_11",
+      "age": 29,
+      "gender": "M",
+      "country": "Greece",
+      "education": "Doctorate",
+      "language": "English"
+    },
+    {
+      "persona_id": "gr_m_12",
+      "age": 39,
+      "gender": "M",
+      "country": "Greece",
+      "education": "Postgraduate degree",
+      "language": "English"
+    },
+    {
+      "persona_id": "gr_m_13",
+      "age": 39,
+      "gender": "M",
+      "country": "Greece",
+      "education": "Postgraduate degree",
+      "language": "English"
+    },
+    {
+      "persona_id": "gr_m_14",
+      "age": 32,
+      "gender": "M",
+      "country": "Greece",
+      "education": "Undergraduate degree",
+      "language": "English"
+    },
+    {
+      "persona_id": "gr_m_15",
+      "age": 25,
+      "gender": "M",
+      "country": "Greece",
+      "education": "Doctorate",
+      "language": "English"
+    },
+    {
+      "persona_id": "cz_f_01",
+      "age": 36,
+      "gender": "F",
+      "country": "Czech Republic",
+      "education": "Undergraduate degree",
+      "language": "English"
+    },
+    {
+      "persona_id": "cz_f_02",
+      "age": 22,
+      "gender": "F",
+      "country": "Czech Republic",
+      "education": "Undergraduate degree",
+      "language": "English"
+    },
+    {
+      "persona_id": "cz_f_03",
+      "age": 25,
+      "gender": "F",
+      "country": "Czech Republic",
+      "education": "Doctorate",
+      "language": "English"
+    },
+    {
+      "persona_id": "cz_f_04",
+      "age": 26,
+      "gender": "F",
+      "country": "Czech Republic",
+      "education": "Doctorate",
+      "language": "English"
+    },
+    {
+      "persona_id": "cz_f_05",
+      "age": 34,
+      "gender": "F",
+      "country": "Czech Republic",
+      "education": "Doctorate",
+      "language": "English"
+    },
+    {
+      "persona_id": "cz_f_06",
+      "age": 23,
+      "gender": "F",
+      "country": "Czech Republic",
+      "education": "Postgraduate degree",
+      "language": "English"
+    },
+    {
+      "persona_id": "cz_f_07",
+      "age": 33,
+      "gender": "F",
+      "country": "Czech Republic",
+      "education": "Doctorate",
+      "language": "English"
+    },
+    {
+      "persona_id": "cz_f_08",
+      "age": 35,
+      "gender": "F",
+      "country": "Czech Republic",
+      "education": "Doctorate",
+      "language": "English"
+    },
+    {
+      "persona_id": "cz_f_09",
+      "age": 29,
+      "gender": "F",
+      "country": "Czech Republic",
+      "education": "Doctorate",
+      "language": "English"
+    },
+    {
+      "persona_id": "cz_f_10",
+      "age": 21,
+      "gender": "F",
+      "country": "Czech Republic",
+      "education": "Doctorate",
+      "language": "English"
+    },
+    {
+      "persona_id": "cz_f_11",
+      "age": 24,
+      "gender": "F",
+      "country": "Czech Republic",
+      "education": "Doctorate",
+      "language": "English"
+    },
+    {
+      "persona_id": "cz_f_12",
+      "age": 38,
+      "gender": "F",
+      "country": "Czech Republic",
+      "education": "Postgraduate degree",
+      "language": "English"
+    },
+    {
+      "persona_id": "cz_f_13",
+      "age": 31,
+      "gender": "F",
+      "country": "Czech Republic",
+      "education": "Undergraduate degree",
+      "language": "English"
+    },
+    {
+      "persona_id": "cz_f_14",
+      "age": 30,
+      "gender": "F",
+      "country": "Czech Republic",
+      "education": "Postgraduate degree",
+      "language": "English"
+    },
+    {
+      "persona_id": "cz_f_15",
+      "age": 26,
+      "gender": "F",
+      "country": "Czech Republic",
+      "education": "Postgraduate degree",
+      "language": "English"
+    },
+    {
+      "persona_id": "cz_m_01",
+      "age": 21,
+      "gender": "M",
+      "country": "Czech Republic",
+      "education": "Doctorate",
+      "language": "English"
+    },
+    {
+      "persona_id": "cz_m_02",
+      "age": 29,
+      "gender": "M",
+      "country": "Czech Republic",
+      "education": "Doctorate",
+      "language": "English"
+    },
+    {
+      "persona_id": "cz_m_03",
+      "age": 26,
+      "gender": "M",
+      "country": "Czech Republic",
+      "education": "Doctorate",
+      "language": "English"
+    },
+    {
+      "persona_id": "cz_m_04",
+      "age": 24,
+      "gender": "M",
+      "country": "Czech Republic",
+      "education": "Doctorate",
+      "language": "English"
+    },
+    {
+      "persona_id": "cz_m_05",
+      "age": 30,
+      "gender": "M",
+      "country": "Czech Republic",
+      "education": "Doctorate",
+      "language": "English"
+    },
+    {
+      "persona_id": "cz_m_06",
+      "age": 37,
+      "gender": "M",
+      "country": "Czech Republic",
+      "education": "Doctorate",
+      "language": "English"
+    },
+    {
+      "persona_id": "cz_m_07",
+      "age": 27,
+      "gender": "M",
+      "country": "Czech Republic",
+      "education": "Undergraduate degree",
+      "language": "English"
+    },
+    {
+      "persona_id": "cz_m_08",
+      "age": 32,
+      "gender": "M",
+      "country": "Czech Republic",
+      "education": "Undergraduate degree",
+      "language": "English"
+    },
+    {
+      "persona_id": "cz_m_09",
+      "age": 38,
+      "gender": "M",
+      "country": "Czech Republic",
+      "education": "Doctorate",
+      "language": "English"
+    },
+    {
+      "persona_id": "cz_m_10",
+      "age": 21,
+      "gender": "M",
+      "country": "Czech Republic",
+      "education": "Doctorate",
+      "language": "English"
+    },
+    {
+      "persona_id": "cz_m_11",
+      "age": 31,
+      "gender": "M",
+      "country": "Czech Republic",
+      "education": "Postgraduate degree",
+      "language": "English"
+    },
+    {
+      "persona_id": "cz_m_12",
+      "age": 21,
+      "gender": "M",
+      "country": "Czech Republic",
+      "education": "Undergraduate degree",
+      "language": "English"
+    },
+    {
+      "persona_id": "cz_m_13",
+      "age": 32,
+      "gender": "M",
+      "country": "Czech Republic",
+      "education": "Postgraduate degree",
+      "language": "English"
+    },
+    {
+      "persona_id": "cz_m_14",
+      "age": 28,
+      "gender": "M",
+      "country": "Czech Republic",
+      "education": "Undergraduate degree",
+      "language": "English"
+    },
+    {
+      "persona_id": "cz_m_15",
+      "age": 28,
+      "gender": "M",
+      "country": "Czech Republic",
+      "education": "Doctorate",
+      "language": "English"
+    }
+  ],
+  "concept": {
+    "name": "Sports Car Video Concept",
+    "content": [
+      {
+        "type": "text",
+        "data": "We are going to show you a video"
+      },
+      {
+        "type": "video",
+        "data": "https://v3b.fal.media/files/b/0a8a1e89/5o7IbfEig8plPPJDXqTbG_output.mp4"
+      }
+    ]
+  },
+  "survey_config": {
+    "questions": [
+      {
+        "id": "video_appeal",
+        "text": "How appealing did you find this video?",
+        "weight": 0.2,
+        "ssr_reference_sets": [
+          [
+            "Not at all appealing",
+            "Not very appealing",
+            "Somewhat appealing",
+            "Quite appealing",
+            "Very appealing"
+          ],
+          [
+            "Completely unappealing",
+            "Mostly unappealing",
+            "Moderately appealing",
+            "Largely appealing",
+            "Extremely appealing"
+          ],
+          [
+            "Totally unappealing",
+            "Slightly unappealing",
+            "Fairly appealing",
+            "Rather appealing",
+            "Highly appealing"
+          ],
+          [
+            "Not appealing in the slightest",
+            "Barely appealing",
+            "Reasonably appealing",
+            "Considerably appealing",
+            "Tremendously appealing"
+          ],
+          [
+            "Zero appeal",
+            "Limited appeal",
+            "Some appeal",
+            "Strong appeal",
+            "Maximum appeal"
+          ],
+          [
+            "Not remotely appealing",
+            "Marginally appealing",
+            "Adequately appealing",
+            "Notably appealing",
+            "Outstandingly appealing"
+          ]
+        ]
+      },
+      {
+        "id": "memorability",
+        "text": "To what extent do you agree with this statement: 'This video is memorable.'",
+        "weight": 0.2,
+        "ssr_reference_sets": [
+          [
+            "Strongly disagree",
+            "Disagree",
+            "Neither agree nor disagree",
+            "Agree",
+            "Strongly agree"
+          ],
+          [
+            "Completely disagree",
+            "Somewhat disagree",
+            "Neutral",
+            "Somewhat agree",
+            "Completely agree"
+          ],
+          [
+            "Totally disagree",
+            "Tend to disagree",
+            "No opinion",
+            "Tend to agree",
+            "Totally agree"
+          ],
+          [
+            "Disagree very much",
+            "Disagree slightly",
+            "Neither way",
+            "Agree slightly",
+            "Agree very much"
+          ],
+          [
+            "Firmly disagree",
+            "Lean towards disagreeing",
+            "Undecided",
+            "Lean towards agreeing",
+            "Firmly agree"
+          ],
+          [
+            "Not at all in agreement",
+            "Mostly disagree",
+            "In between",
+            "Mostly agree",
+            "Fully in agreement"
+          ]
+        ]
+      },
+      {
+        "id": "excitement",
+        "text": "How exciting did you find the car shown in this video?",
+        "weight": 0.2,
+        "ssr_reference_sets": [
+          [
+            "Not at all exciting",
+            "Not very exciting",
+            "Somewhat exciting",
+            "Quite exciting",
+            "Very exciting"
+          ],
+          [
+            "Completely unexciting",
+            "Mostly unexciting",
+            "Moderately exciting",
+            "Largely exciting",
+            "Extremely exciting"
+          ],
+          [
+            "Totally unexciting",
+            "Slightly unexciting",
+            "Fairly exciting",
+            "Rather exciting",
+            "Highly exciting"
+          ],
+          [
+            "Not exciting in the slightest",
+            "Barely exciting",
+            "Reasonably exciting",
+            "Considerably exciting",
+            "Tremendously exciting"
+          ],
+          [
+            "Zero excitement",
+            "Limited excitement",
+            "Some excitement",
+            "Strong excitement",
+            "Maximum excitement"
+          ],
+          [
+            "Not remotely exciting",
+            "Marginally exciting",
+            "Adequately exciting",
+            "Notably exciting",
+            "Outstandingly exciting"
+          ]
+        ]
+      },
+      {
+        "id": "purchase_interest",
+        "text": "After watching this video, how interested would you be in learning more about the car shown?",
+        "weight": 0.2,
+        "ssr_reference_sets": [
+          [
+            "Not at all interested",
+            "Not very interested",
+            "Somewhat interested",
+            "Quite interested",
+            "Very interested"
+          ],
+          [
+            "Completely uninterested",
+            "Mostly uninterested",
+            "Moderately interested",
+            "Largely interested",
+            "Extremely interested"
+          ],
+          [
+            "Totally disinterested",
+            "Slightly disinterested",
+            "Fairly interested",
+            "Rather interested",
+            "Highly interested"
+          ],
+          [
+            "Not interested in the slightest",
+            "Barely interested",
+            "Reasonably interested",
+            "Considerably interested",
+            "Tremendously interested"
+          ],
+          [
+            "Zero interest",
+            "Limited interest",
+            "Some interest",
+            "Strong interest",
+            "Maximum interest"
+          ],
+          [
+            "Not remotely interested",
+            "Marginally interested",
+            "Adequately interested",
+            "Notably interested",
+            "Outstandingly interested"
+          ]
+        ]
+      },
+      {
+        "id": "share_intent",
+        "text": "How likely would you be to share this video with someone you know?",
+        "weight": 0.2,
+        "ssr_reference_sets": [
+          [
+            "Not at all likely",
+            "Not very likely",
+            "Somewhat likely",
+            "Quite likely",
+            "Very likely"
+          ],
+          [
+            "Completely unlikely",
+            "Mostly unlikely",
+            "Moderately likely",
+            "Largely likely",
+            "Extremely likely"
+          ],
+          [
+            "Totally unlikely",
+            "Slightly unlikely",
+            "Fairly likely",
+            "Rather likely",
+            "Highly likely"
+          ],
+          [
+            "Not likely in the slightest",
+            "Barely likely",
+            "Reasonably likely",
+            "Considerably likely",
+            "Tremendously likely"
+          ],
+          [
+            "Zero likelihood",
+            "Limited likelihood",
+            "Some likelihood",
+            "Strong likelihood",
+            "Maximum likelihood"
+          ],
+          [
+            "Not remotely likely",
+            "Marginally likely",
+            "Adequately likely",
+            "Notably likely",
+            "Outstandingly likely"
+          ]
+        ]
+      }
+    ]
+  },
+  "threshold": 0.55,
+  "filters": [],
+  "output_dataset": true,
+  "include_report": true,
+  "options": {
+    "verbose": true,
+    "generation_provider": "bedrock",
+    "generation_model": "eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
+    "embedding_provider": "bedrock",
+    "embedding_model": "amazon.titan-embed-text-v2:0",
+    "vision_provider": "bedrock",
+    "vision_model": "eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
+    "video_provider": "bedrock",
+    "video_model": "eu.twelvelabs.pegasus-1-2-v1:0"
+  }
+}
