@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from .bedrock_provider import (
@@ -116,79 +116,90 @@ class VisionProvider(ABC):
         """
         pass
 
+    async def generate_with_video(
+        self,
+        prompt: str,
+        video_source: Any,
+        temperature: float = 0.2,
+    ) -> str:
+        """Generate text response from a video.
+
+        Args:
+            prompt: Combined prompt text
+            video_source: Resolved video source
+            temperature: Sampling temperature
+
+        Returns:
+            Generated text response
+        """
+        raise NotImplementedError("Video generation not supported by this provider")
+
 
 class ProviderFactory:
-    """Factory to create providers based on configuration."""
+    """Factory to create providers based on configuration.
 
-    @staticmethod
+    Caches provider instances by (provider_type, capability, model) to avoid
+    creating duplicate clients for the same configuration.
+    """
+
+    _cache: dict[tuple[str, str, str], object] = {}
+
+    @classmethod
     def create_generation_provider(
+        cls,
         provider: str,
         model: str,
     ) -> GenerationProvider:
-        """
-        Create a generation provider.
-
-        Args:
-            provider: Provider type ("openai" or "bedrock")
-            model: Model identifier
-
-        Returns:
-            GenerationProvider instance
-        """
-        # Import here to avoid circular imports
+        """Create or return cached generation provider."""
         from .bedrock_provider import BedrockGenerationProvider
         from .openai_provider import OpenAIGenerationProvider
 
-        if provider == ProviderType.OPENAI or provider == "openai":
-            return OpenAIGenerationProvider(model=model)
-        elif provider == ProviderType.BEDROCK or provider == "bedrock":
-            return BedrockGenerationProvider(model=model)
-        raise ValueError(f"Unknown generation provider: {provider}")
+        key = (provider, "generation", model)
+        if key not in cls._cache:
+            if provider == ProviderType.OPENAI or provider == "openai":
+                cls._cache[key] = OpenAIGenerationProvider(model=model)
+            elif provider == ProviderType.BEDROCK or provider == "bedrock":
+                cls._cache[key] = BedrockGenerationProvider(model=model)
+            else:
+                raise ValueError(f"Unknown generation provider: {provider}")
+        return cls._cache[key]  # type: ignore[return-value]
 
-    @staticmethod
+    @classmethod
     def create_embedding_provider(
+        cls,
         provider: str,
         model: str,
     ) -> EmbeddingProvider:
-        """
-        Create an embedding provider.
-
-        Args:
-            provider: Provider type ("openai" or "bedrock")
-            model: Model identifier
-
-        Returns:
-            EmbeddingProvider instance
-        """
+        """Create or return cached embedding provider."""
         from .bedrock_provider import BedrockEmbeddingProvider
         from .openai_provider import OpenAIEmbeddingProvider
 
-        if provider == ProviderType.OPENAI or provider == "openai":
-            return OpenAIEmbeddingProvider(model=model)
-        elif provider == ProviderType.BEDROCK or provider == "bedrock":
-            return BedrockEmbeddingProvider(model=model)
-        raise ValueError(f"Unknown embedding provider: {provider}")
+        key = (provider, "embedding", model)
+        if key not in cls._cache:
+            if provider == ProviderType.OPENAI or provider == "openai":
+                cls._cache[key] = OpenAIEmbeddingProvider(model=model)
+            elif provider == ProviderType.BEDROCK or provider == "bedrock":
+                cls._cache[key] = BedrockEmbeddingProvider(model=model)
+            else:
+                raise ValueError(f"Unknown embedding provider: {provider}")
+        return cls._cache[key]  # type: ignore[return-value]
 
-    @staticmethod
+    @classmethod
     def create_vision_provider(
+        cls,
         provider: str,
         model: str,
     ) -> VisionProvider:
-        """
-        Create a vision provider.
-
-        Args:
-            provider: Provider type ("openai" or "bedrock")
-            model: Model identifier
-
-        Returns:
-            VisionProvider instance
-        """
+        """Create or return cached vision provider."""
         from .bedrock_provider import BedrockVisionProvider
         from .openai_provider import OpenAIVisionProvider
 
-        if provider == ProviderType.OPENAI or provider == "openai":
-            return OpenAIVisionProvider(model=model)
-        elif provider == ProviderType.BEDROCK or provider == "bedrock":
-            return BedrockVisionProvider(model=model)
-        raise ValueError(f"Unknown vision provider: {provider}")
+        key = (provider, "vision", model)
+        if key not in cls._cache:
+            if provider == ProviderType.OPENAI or provider == "openai":
+                cls._cache[key] = OpenAIVisionProvider(model=model)
+            elif provider == ProviderType.BEDROCK or provider == "bedrock":
+                cls._cache[key] = BedrockVisionProvider(model=model)
+            else:
+                raise ValueError(f"Unknown vision provider: {provider}")
+        return cls._cache[key]  # type: ignore[return-value]

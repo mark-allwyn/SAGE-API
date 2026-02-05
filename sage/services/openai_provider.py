@@ -1,5 +1,7 @@
 """OpenAI provider implementations for generation, embedding, and vision."""
 
+from collections import OrderedDict
+
 from openai import APIError, AsyncOpenAI
 
 from ..exceptions import ProviderError
@@ -53,7 +55,8 @@ class OpenAIEmbeddingProvider(EmbeddingProvider):
         """
         self.client = AsyncOpenAI()
         self.model = model
-        self._cache: dict[tuple[str, ...], list[list[float]]] = {}
+        self._cache: OrderedDict[tuple[str, ...], list[list[float]]] = OrderedDict()
+        self._max_cache_size = 256
 
     async def embed(self, texts: list[str]) -> list[list[float]]:
         """Embed multiple texts."""
@@ -78,10 +81,14 @@ class OpenAIEmbeddingProvider(EmbeddingProvider):
             raise ProviderError("openai", str(e)) from e
 
     async def embed_with_cache(self, texts: list[str]) -> list[list[float]]:
-        """Embed texts with caching (for anchor texts)."""
+        """Embed texts with LRU caching (for anchor texts)."""
         cache_key = tuple(texts)
-        if cache_key not in self._cache:
+        if cache_key in self._cache:
+            self._cache.move_to_end(cache_key)
+        else:
             self._cache[cache_key] = await self.embed(texts)
+            if len(self._cache) > self._max_cache_size:
+                self._cache.popitem(last=False)
         return self._cache[cache_key]
 
 

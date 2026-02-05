@@ -7,18 +7,24 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 from ..config import SUPPORTED_MODELS, get_settings
 
 
+MAX_PERSONAS = 500
+MAX_QUESTIONS = 20
+MAX_CONTENT_ITEMS = 10
+MAX_TEXT_LENGTH = 50_000
+
+
 class ContentItem(BaseModel):
     """Content item for a product concept (text or image)."""
 
-    type: str  # "image" or "text"
-    data: str  # base64 for image, string for text
+    type: str  # "image", "text", or "video"
+    data: str  # base64 for image, string for text, URL/base64/S3 for video
     label: str | None = None
 
     @field_validator("type")
     @classmethod
     def validate_type(cls, v: str) -> str:
-        if v not in ("image", "text"):
-            raise ValueError('type must be "image" or "text"')
+        if v not in ("image", "text", "video"):
+            raise ValueError('type must be "image", "text", or "video"')
         return v
 
 
@@ -34,6 +40,11 @@ class Concept(BaseModel):
     def validate_content(cls, v: list[ContentItem]) -> list[ContentItem]:
         if len(v) == 0:
             raise ValueError("At least one content item is required")
+        if len(v) > MAX_CONTENT_ITEMS:
+            raise ValueError(f"Maximum {MAX_CONTENT_ITEMS} content items allowed")
+        for item in v:
+            if item.type == "text" and len(item.data) > MAX_TEXT_LENGTH:
+                raise ValueError(f"Text content exceeds maximum length of {MAX_TEXT_LENGTH}")
         return v
 
 
@@ -73,6 +84,8 @@ class SurveyConfig(BaseModel):
     def validate_weights(cls, v: list[Question]) -> list[Question]:
         if len(v) == 0:
             raise ValueError("At least one question is required")
+        if len(v) > MAX_QUESTIONS:
+            raise ValueError(f"Maximum {MAX_QUESTIONS} questions allowed")
         total_weight = sum(q.weight for q in v)
         if not (0.99 <= total_weight <= 1.01):
             raise ValueError(f"Question weights must sum to 1.0, got {total_weight}")
@@ -99,7 +112,14 @@ class Options(BaseModel):
     vision_provider: str = Field(default_factory=lambda: _settings().default_vision_provider)
     vision_model: str = Field(default_factory=lambda: _settings().default_vision_model)
 
-    @field_validator("generation_provider", "embedding_provider", "vision_provider")
+    # Video Settings (for video processing via Twelve Labs Pegasus)
+    video_provider: str = Field(default_factory=lambda: _settings().default_video_provider)
+    video_model: str = Field(default_factory=lambda: _settings().default_video_model)
+    s3_bucket_owner: str | None = None
+
+    @field_validator(
+        "generation_provider", "embedding_provider", "vision_provider", "video_provider"
+    )
     @classmethod
     def validate_provider(cls, v: str) -> str:
         if v not in ("openai", "bedrock"):
@@ -134,6 +154,12 @@ class Options(BaseModel):
                 f"vision_model '{self.vision_model}' not supported for "
                 f"provider '{self.vision_provider}'. Valid: {vis_models}"
             )
+        vid_models = SUPPORTED_MODELS.get(self.video_provider, {}).get("video", [])
+        if vid_models and self.video_model not in vid_models:
+            errors.append(
+                f"video_model '{self.video_model}' not supported for "
+                f"provider '{self.video_provider}'. Valid: {vid_models}"
+            )
         if errors:
             raise ValueError("; ".join(errors))
         return self
@@ -157,6 +183,8 @@ class TestConceptRequest(BaseModel):
     def validate_personas(cls, v: list[dict[str, Any]]) -> list[dict[str, Any]]:
         if len(v) == 0:
             raise ValueError("At least one persona is required")
+        if len(v) > MAX_PERSONAS:
+            raise ValueError(f"Maximum {MAX_PERSONAS} personas allowed")
         ids = [p.get("persona_id") for p in v]
         if None in ids:
             raise ValueError("All personas must have a persona_id")

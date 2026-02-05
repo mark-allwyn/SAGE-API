@@ -12,6 +12,7 @@ from .llm_provider import (
     ProviderFactory,
     VisionProvider,
 )
+from .video_downloader import VideoDownloader
 
 
 class LLMService:
@@ -46,6 +47,11 @@ class LLMService:
             options.vision_provider,
             options.vision_model,
         )
+        self.video_provider: VisionProvider = ProviderFactory.create_vision_provider(
+            options.video_provider,
+            options.video_model,
+        )
+        self.video_downloader = VideoDownloader()
 
     async def generate_response(
         self,
@@ -67,37 +73,64 @@ class LLMService:
         system_prompt = self._build_system_prompt(persona)
         user_prompt = self._build_user_prompt(concept, question)
 
-        # Check if concept has images
-        images = [
-            {"data": c.data, "media_type": self._detect_media_type(c.data)}
-            for c in concept.content
-            if c.type == "image"
-        ]
+        # Check for video content (video takes priority over images)
+        videos = [c for c in concept.content if c.type == "video"]
 
-        if images:
+        if videos:
+            if len(videos) > 1:
+                logger.warning(
+                    "Concept has %d videos, Pegasus processes one at a time - using first",
+                    len(videos),
+                )
+            video = videos[0]
             logger.debug(
-                "Vision generation: persona=%s question=%s (%d images)",
+                "Video generation: persona=%s question=%s",
                 persona.get("persona_id", "?"),
                 question.id,
-                len(images),
             )
-            response = await self.vision_provider.generate_with_images(
-                system_prompt=system_prompt,
-                user_prompt=user_prompt,
-                images=images,
+            video_source = await self.video_downloader.resolve(
+                video.data,
+                s3_bucket_owner=self.options.s3_bucket_owner,
+            )
+            # Pegasus uses a single inputPrompt - combine system + user
+            combined_prompt = f"{system_prompt}\n\n{user_prompt}"
+            response = await self.video_provider.generate_with_video(
+                prompt=combined_prompt,
+                video_source=video_source,
                 temperature=self.options.generation_temperature,
             )
         else:
-            logger.debug(
-                "Text generation: persona=%s question=%s",
-                persona.get("persona_id", "?"),
-                question.id,
-            )
-            response = await self.generation_provider.generate(
-                system_prompt=system_prompt,
-                user_prompt=user_prompt,
-                temperature=self.options.generation_temperature,
-            )
+            # Check if concept has images
+            images = [
+                {"data": c.data, "media_type": self._detect_media_type(c.data)}
+                for c in concept.content
+                if c.type == "image"
+            ]
+
+            if images:
+                logger.debug(
+                    "Vision generation: persona=%s question=%s (%d images)",
+                    persona.get("persona_id", "?"),
+                    question.id,
+                    len(images),
+                )
+                response = await self.vision_provider.generate_with_images(
+                    system_prompt=system_prompt,
+                    user_prompt=user_prompt,
+                    images=images,
+                    temperature=self.options.generation_temperature,
+                )
+            else:
+                logger.debug(
+                    "Text generation: persona=%s question=%s",
+                    persona.get("persona_id", "?"),
+                    question.id,
+                )
+                response = await self.generation_provider.generate(
+                    system_prompt=system_prompt,
+                    user_prompt=user_prompt,
+                    temperature=self.options.generation_temperature,
+                )
 
         logger.debug("Response (%d chars): %.80s...", len(response), response)
         return response
@@ -135,11 +168,15 @@ Respond naturally and authentically as this person would. Your responses should 
     def _build_user_prompt(self, concept: Concept, question: Question) -> str:
         """Build user prompt with concept and question."""
         text_content = "\n".join([c.data for c in concept.content if c.type == "text"])
+        has_video = any(c.type == "video" for c in concept.content)
 
         prompt = f'Here is a product concept for "{concept.name}":\n\n'
 
         if text_content:
             prompt += f"{text_content}\n\n"
+
+        if has_video:
+            prompt += "[A video is attached showing this concept.]\n\n"
 
         prompt += f"""Please respond to this question in 2-3 sentences, speaking as yourself:
 
