@@ -72,10 +72,9 @@ logs/
 # uv
 uv.lock
 
-# Claude Code
+# IDE and tooling
 .claude/
 
 # Source specification documents (reference only)
 *.pdf
 *.docx
-claude_code_build_prompt.md
