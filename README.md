@@ -16,8 +16,9 @@ SAGE simulates how real consumers would respond to product concepts by:
 
 ## Features
 
-- **Multi-Provider Support**: OpenAI and AWS Bedrock for generation, embeddings, and vision
+- **Multi-Provider Support**: OpenAI and AWS Bedrock for generation, embeddings, vision, and video
 - **Vision Support**: Test image-based concepts (storyboards, ads) via base64-encoded images
+- **Video Support**: Test video-based concepts via YouTube URLs, direct MP4 links, S3 URIs, or base64 - with automatic download caching
 - **Flexible Personas**: Any demographic attributes with SQL-like filtering
 - **Custom Surveys**: Multiple weighted questions with 6 reference sets of 5 anchors each
 - **Rich Output**: Detailed metrics, distributions, and optional raw dataset export
@@ -134,6 +135,37 @@ Test visual concepts like storyboards, ads, or product images using base64-encod
 
 When images are present, the vision model interprets the image and personas respond to the visual content. Supported formats: JPEG, PNG, GIF, WebP.
 
+## Video-Based Concepts
+
+Test video concepts using YouTube URLs, direct MP4 links, S3 URIs, or base64-encoded video. Video content is processed by the Twelve Labs Pegasus model via AWS Bedrock:
+
+```json
+{
+  "concept": {
+    "name": "Sports Car Video",
+    "content": [
+      {"type": "text", "data": "We are going to show you a video"},
+      {"type": "video", "data": "https://example.com/video.mp4"}
+    ]
+  },
+  "options": {
+    "video_provider": "bedrock",
+    "video_model": "eu.twelvelabs.pegasus-1-2-v1:0"
+  }
+}
+```
+
+Supported video sources:
+
+| Source | Format | Example |
+|--------|--------|---------|
+| YouTube | URL | `https://www.youtube.com/watch?v=abc123` |
+| Direct URL | HTTP/HTTPS to MP4 | `https://example.com/video.mp4` |
+| S3 | S3 URI | `s3://bucket/video.mp4` |
+| Base64 | Encoded string | `AAAA/base64data...` |
+
+Video downloads are cached per request - the same video is only downloaded once regardless of how many persona/question combinations reference it.
+
 ## Filtering Personas
 
 Use SQL-like expressions to target specific demographics:
@@ -179,6 +211,8 @@ Filters are applied after LLM generation. Only matched personas contribute to me
 | `DEFAULT_EMBEDDING_MODEL` | `text-embedding-3-small` | Default embedding model |
 | `DEFAULT_VISION_PROVIDER` | `openai` | Default vision provider |
 | `DEFAULT_VISION_MODEL` | `gpt-4o` | Default vision model |
+| `DEFAULT_VIDEO_PROVIDER` | `bedrock` | Default video provider |
+| `DEFAULT_VIDEO_MODEL` | `eu.twelvelabs.pegasus-1-2-v1:0` | Default video model |
 | `DEFAULT_TEMPERATURE` | `0.7` | Default LLM temperature |
 | **SSR** | | |
 | `SSR_SOFTMAX_TEMPERATURE` | `1.0` | PMF sharpening temperature. Lower = sharper distribution. |
@@ -203,6 +237,7 @@ Filters are applied after LLM generation. Only matched personas contribute to me
 | Generation | `eu.anthropic.claude-sonnet-4-5-20250929-v1:0`, `eu.anthropic.claude-sonnet-4-20250514-v1:0`, `eu.anthropic.claude-3-7-sonnet-20250219-v1:0`, `eu.anthropic.claude-haiku-4-5-20251001-v1:0`, `anthropic.claude-3-5-sonnet-20240620-v1:0`, `anthropic.claude-3-haiku-20240307-v1:0` |
 | Embedding | `amazon.titan-embed-text-v2:0`, `amazon.titan-embed-text-v1` |
 | Vision | Same as Generation |
+| Video | `eu.twelvelabs.pegasus-1-2-v1:0` |
 
 Note: Newer Claude models (4.x, 4.5) require EU inference profile IDs (`eu.` prefix) in `eu-central-1`. Direct model IDs work for older models (3.x).
 
@@ -285,7 +320,8 @@ sage_API/
 │   │   ├── ssr_engine.py      # Semantic Similarity Rating with parallel processing
 │   │   ├── filter_engine.py   # SQL-like persona filtering
 │   │   ├── scoring_engine.py  # Metrics calculation and composite scoring
-│   │   └── report_generator.py# Markdown report generation
+│   │   ├── report_generator.py# Markdown report generation
+│   │   └── video_downloader.py# Video source resolver with download caching
 │   ├── utils/
 │   │   └── embeddings.py      # Cosine similarity utilities
 │   └── tests/
