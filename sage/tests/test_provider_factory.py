@@ -60,3 +60,39 @@ class TestProviderFactory:
     def test_unknown_vision_provider_raises(self):
         with pytest.raises(ValueError, match="Unknown vision provider"):
             ProviderFactory.create_vision_provider("azure", "some-model")
+
+    def test_create_bedrock_vision_with_pegasus(self):
+        """Pegasus model should create a BedrockVisionProvider with twelvelabs family."""
+        from sage.services.bedrock_provider import BedrockVisionProvider
+
+        provider = ProviderFactory.create_vision_provider(
+            "bedrock", "eu.twelvelabs.pegasus-1-2-v1:0"
+        )
+        assert isinstance(provider, BedrockVisionProvider)
+        assert provider.family == "twelvelabs"
+
+
+class TestFamilyDetection:
+    """Test _detect_family correctly identifies model families."""
+
+    def test_twelvelabs_family(self):
+        from sage.services.bedrock_provider import _detect_family
+
+        assert _detect_family("eu.twelvelabs.pegasus-1-2-v1:0") == "twelvelabs"
+
+    def test_anthropic_family(self):
+        from sage.services.bedrock_provider import _detect_family
+
+        assert _detect_family("eu.anthropic.claude-sonnet-4-5-20250929-v1:0") == "anthropic"
+
+    def test_nova_family(self):
+        from sage.services.bedrock_provider import _detect_family
+
+        assert _detect_family("eu.amazon.nova-pro-v1:0") == "nova"
+
+    def test_unknown_family_raises(self):
+        from sage.exceptions import ConfigurationError
+        from sage.services.bedrock_provider import _detect_family
+
+        with pytest.raises(ConfigurationError, match="Unknown Bedrock model family"):
+            _detect_family("unknown.model-v1:0")

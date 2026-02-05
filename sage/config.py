@@ -37,12 +37,16 @@ class Settings(BaseSettings):
     default_embedding_model: str = os.getenv("DEFAULT_EMBEDDING_MODEL", "text-embedding-3-small")
     default_vision_provider: str = os.getenv("DEFAULT_VISION_PROVIDER", "openai")
     default_vision_model: str = os.getenv("DEFAULT_VISION_MODEL", "gpt-4o")
+    default_video_provider: str = os.getenv("DEFAULT_VIDEO_PROVIDER", "bedrock")
+    default_video_model: str = os.getenv(
+        "DEFAULT_VIDEO_MODEL", "eu.twelvelabs.pegasus-1-2-v1:0"
+    )
     default_temperature: float = float(os.getenv("DEFAULT_TEMPERATURE", "0.7"))
 
     # SSR Configuration
     # Temperature for PMF sharpening: p(r,T) ∝ p(r)^(1/T)
     # Paper uses T=1 (no sharpening). Lower T = sharper distribution.
-    ssr_softmax_temperature: float = 1.0
+    ssr_softmax_temperature: float = float(os.getenv("SSR_SOFTMAX_TEMPERATURE", "1.0"))
 
     # Processing Configuration
     batch_size: int = int(os.getenv("BATCH_SIZE", "10"))
@@ -80,6 +84,7 @@ SUPPORTED_MODELS = {
             "gpt-4o-mini",
             "gpt-4-turbo",
         ],
+        "video": [],
     },
     "bedrock": {
         "generation": [
@@ -127,6 +132,10 @@ SUPPORTED_MODELS = {
             "eu.amazon.nova-2-lite-v1:0",
             # Mistral
             "eu.mistral.pixtral-large-2502-v1:0",
+        ],
+        "video": [
+            # Twelve Labs Pegasus (EU inference profile)
+            "eu.twelvelabs.pegasus-1-2-v1:0",
         ],
     },
 }

@@ -6,14 +6,19 @@ a format that the Pegasus API accepts.
 
 import asyncio
 import base64
+import ipaddress
 import logging
 import re
+import socket
 import tempfile
 from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
+from urllib.parse import urlparse
 
 import httpx
+
+from ..exceptions import ProviderError
 
 logger = logging.getLogger(__name__)
 
@@ -72,6 +77,7 @@ class VideoDownloader:
                 )
             elif self._is_youtube(data):
                 logger.info("Video source: YouTube URL")
+                self._validate_url(data)
                 video_bytes = await self._download_youtube(data)
                 result = VideoSource(
                     source_type="base64",
@@ -104,9 +110,35 @@ class VideoDownloader:
     def _is_s3(data: str) -> bool:
         return data.startswith("s3://")
 
+    @staticmethod
+    def _validate_url(url: str) -> None:
+        """Validate URL to prevent SSRF attacks."""
+        parsed = urlparse(url)
+        if parsed.scheme not in ("http", "https"):
+            raise ProviderError("video", f"Unsupported URL scheme: {parsed.scheme}")
+        hostname = parsed.hostname
+        if not hostname:
+            raise ProviderError("video", "URL has no hostname")
+        # Block metadata endpoints and localhost
+        blocked_hosts = {"169.254.169.254", "metadata.google.internal", "localhost", "127.0.0.1"}
+        if hostname in blocked_hosts:
+            raise ProviderError("video", f"Blocked hostname: {hostname}")
+        # Resolve hostname and check for private IPs
+        try:
+            addr_info = socket.getaddrinfo(hostname, None)
+            for _, _, _, _, sockaddr in addr_info:
+                ip = ipaddress.ip_address(sockaddr[0])
+                if ip.is_private or ip.is_loopback or ip.is_link_local:
+                    raise ProviderError("video", f"URL resolves to private address: {ip}")
+        except socket.gaierror as e:
+            raise ProviderError("video", f"Cannot resolve hostname: {hostname}") from e
+
     async def _download_youtube(self, url: str) -> bytes:
         """Download a YouTube video as MP4 using yt-dlp."""
-        import yt_dlp
+        try:
+            import yt_dlp
+        except ImportError as e:
+            raise ProviderError("video", "yt-dlp is required for YouTube downloads") from e
 
         with tempfile.TemporaryDirectory() as tmpdir:
             temp_path = str(Path(tmpdir) / "video.mp4")
@@ -117,15 +149,18 @@ class VideoDownloader:
                 "outtmpl": temp_path,
             }
 
-            loop = asyncio.get_event_loop()
-            await loop.run_in_executor(
-                None,
-                partial(self._run_yt_dlp, ydl_opts, url),
-            )
+            try:
+                loop = asyncio.get_event_loop()
+                await loop.run_in_executor(
+                    None,
+                    partial(self._run_yt_dlp, ydl_opts, url),
+                )
+            except Exception as e:
+                raise ProviderError("video", f"YouTube download failed: {e}") from e
 
             video_path = Path(temp_path)
             if not video_path.exists():
-                raise RuntimeError(f"yt-dlp did not produce output file for: {url}")
+                raise ProviderError("video", f"yt-dlp did not produce output file for: {url}")
 
             video_bytes = video_path.read_bytes()
             if len(video_bytes) > MAX_BASE64_SIZE:
@@ -145,17 +180,26 @@ class VideoDownloader:
 
     async def _download_url(self, url: str) -> bytes:
         """Download a video file from a direct URL."""
-        async with httpx.AsyncClient(timeout=120.0, follow_redirects=True) as client:
-            response = await client.get(url)
-            response.raise_for_status()
-            video_bytes = response.content
-            if len(video_bytes) > MAX_BASE64_SIZE:
-                logger.warning(
-                    "Downloaded video is %d bytes (limit %d), may fail base64 upload",
-                    len(video_bytes),
-                    MAX_BASE64_SIZE,
-                )
-            return video_bytes
+        self._validate_url(url)
+        try:
+            async with httpx.AsyncClient(timeout=120.0, follow_redirects=True) as client:
+                response = await client.get(url)
+                response.raise_for_status()
+                content_type = response.headers.get("content-type", "")
+                if content_type and not content_type.startswith(("video/", "application/octet-stream")):
+                    logger.warning("Unexpected content-type for video URL: %s", content_type)
+                video_bytes = response.content
+                if len(video_bytes) > MAX_BASE64_SIZE:
+                    logger.warning(
+                        "Downloaded video is %d bytes (limit %d), may fail base64 upload",
+                        len(video_bytes),
+                        MAX_BASE64_SIZE,
+                    )
+                return video_bytes
+        except httpx.HTTPStatusError as e:
+            raise ProviderError("video", f"Video download failed (HTTP {e.response.status_code}): {url}") from e
+        except httpx.RequestError as e:
+            raise ProviderError("video", f"Video download failed: {e}") from e
 
     @staticmethod
     def _to_base64(video_bytes: bytes) -> str:

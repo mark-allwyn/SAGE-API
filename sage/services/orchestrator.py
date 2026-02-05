@@ -155,6 +155,7 @@ class Orchestrator:
                     generation=f"{request.options.generation_provider}/{request.options.generation_model}",
                     embedding=f"{request.options.embedding_provider}/{request.options.embedding_model}",
                     vision=f"{request.options.vision_provider}/{request.options.vision_model}",
+                    video=f"{request.options.video_provider}/{request.options.video_model}",
                 ),
             ),
         )

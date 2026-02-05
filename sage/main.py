@@ -40,7 +40,22 @@ orchestrator = Orchestrator()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan handler."""
-    # Startup
+    # Startup - validate configuration
+    logger.info(
+        "Starting SAGE API | generation=%s/%s | embedding=%s/%s | vision=%s/%s | video=%s/%s",
+        settings.default_generation_provider,
+        settings.default_generation_model,
+        settings.default_embedding_provider,
+        settings.default_embedding_model,
+        settings.default_vision_provider,
+        settings.default_vision_model,
+        settings.default_video_provider,
+        settings.default_video_model,
+    )
+    if settings.default_generation_provider == "openai" and not settings.openai_api_key:
+        logger.warning("OpenAI is default provider but OPENAI_API_KEY is not set")
+    if settings.default_generation_provider == "bedrock" and not settings.aws_region:
+        logger.warning("Bedrock is default provider but AWS_REGION is not set")
     yield
     # Shutdown
 
@@ -167,6 +182,8 @@ async def api_info() -> dict:
             "embedding_model": settings.default_embedding_model,
             "vision_provider": settings.default_vision_provider,
             "vision_model": settings.default_vision_model,
+            "video_provider": settings.default_video_provider,
+            "video_model": settings.default_video_model,
             "temperature": settings.default_temperature,
             "ssr_softmax_temperature": settings.ssr_softmax_temperature,
             "batch_size": settings.batch_size,
@@ -178,7 +195,7 @@ if __name__ == "__main__":
     import uvicorn
 
     uvicorn.run(
-        "main:app",
+        "sage.main:app",
         host=settings.api_host,
         port=settings.api_port,
         reload=settings.debug,

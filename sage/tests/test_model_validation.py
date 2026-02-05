@@ -115,3 +115,48 @@ class TestInvalidModelCombinations:
                 vision_provider="openai",
                 vision_model="gpt-4o",
             )
+
+    def test_invalid_video_model_rejected(self):
+        """An invalid video model should be rejected for bedrock provider."""
+        with pytest.raises(ValidationError, match="video_model"):
+            Options(
+                generation_provider="openai",
+                generation_model="gpt-4o",
+                embedding_provider="openai",
+                embedding_model="text-embedding-3-small",
+                vision_provider="openai",
+                vision_model="gpt-4o",
+                video_provider="bedrock",
+                video_model="nonexistent-video-model",
+            )
+
+
+class TestVideoModelValidation:
+    """Test video-specific model validation."""
+
+    def test_pegasus_model_accepted(self):
+        opts = Options(
+            generation_provider="openai",
+            generation_model="gpt-4o",
+            embedding_provider="openai",
+            embedding_model="text-embedding-3-small",
+            vision_provider="openai",
+            vision_model="gpt-4o",
+            video_provider="bedrock",
+            video_model="eu.twelvelabs.pegasus-1-2-v1:0",
+        )
+        assert opts.video_model == "eu.twelvelabs.pegasus-1-2-v1:0"
+
+    def test_openai_video_provider_skips_validation_when_no_models(self):
+        """OpenAI has empty video model list, so any model should pass (no validation)."""
+        opts = Options(
+            generation_provider="openai",
+            generation_model="gpt-4o",
+            embedding_provider="openai",
+            embedding_model="text-embedding-3-small",
+            vision_provider="openai",
+            vision_model="gpt-4o",
+            video_provider="openai",
+            video_model="anything",
+        )
+        assert opts.video_provider == "openai"

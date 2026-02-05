@@ -1,5 +1,8 @@
 FROM python:3.11-slim
 
+# Install system dependencies (ffmpeg needed by yt-dlp for YouTube downloads)
+RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg && rm -rf /var/lib/apt/lists/*
+
 # Install uv
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
 

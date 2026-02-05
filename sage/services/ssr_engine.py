@@ -16,11 +16,14 @@ Where γ = cosine similarity, ℓ = anchor with minimum similarity, ε = 0 (pape
 """
 
 import asyncio
+from collections import OrderedDict
 
 import numpy as np
 
 from ..utils.embeddings import cosine_similarity
 from .llm_service import LLMService
+
+MAX_ANCHOR_CACHE_SIZE = 256
 
 
 class SSREngine:
@@ -41,7 +44,7 @@ class SSREngine:
         """
         self.llm_service = llm_service
         self.temperature = temperature
-        self._anchor_cache: dict[tuple[str, ...], list[list[float]]] = {}
+        self._anchor_cache: OrderedDict[tuple[str, ...], list[list[float]]] = OrderedDict()
 
     async def map_response_to_likert(
         self,
@@ -111,12 +114,16 @@ class SSREngine:
         Returns:
             PMF over Likert scale [p1, p2, p3, p4, p5]
         """
-        # Get anchor embeddings (cached)
+        # Get anchor embeddings (LRU cached)
         cache_key = tuple(reference_set)
-        if cache_key not in self._anchor_cache:
+        if cache_key in self._anchor_cache:
+            self._anchor_cache.move_to_end(cache_key)
+        else:
             self._anchor_cache[cache_key] = await self.llm_service.get_embeddings(
                 reference_set
             )
+            if len(self._anchor_cache) > MAX_ANCHOR_CACHE_SIZE:
+                self._anchor_cache.popitem(last=False)
 
         anchor_embeddings = self._anchor_cache[cache_key]
 
