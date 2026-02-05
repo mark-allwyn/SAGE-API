@@ -1,0 +1,138 @@
+{
+    "result": {
+        "passed": false,
+        "composite_score": 0.427,
+        "threshold": 0.55,
+        "margin": -0.123,
+        "reason": "FAIL: Composite score 0.427 is below threshold 0.55"
+    },
+    "filters_applied": [],
+    "personas_total": 90,
+    "personas_matched": 90,
+    "criteria_breakdown": [
+        {
+            "question_id": "want_to_know_more",
+            "weight": 0.2,
+            "raw_mean": 2.56,
+            "normalized": 0.39,
+            "contribution": 0.078
+        },
+        {
+            "question_id": "memorability",
+            "weight": 0.2,
+            "raw_mean": 3.0,
+            "normalized": 0.5,
+            "contribution": 0.1
+        },
+        {
+            "question_id": "research_intent",
+            "weight": 0.2,
+            "raw_mean": 1.85,
+            "normalized": 0.213,
+            "contribution": 0.043
+        },
+        {
+            "question_id": "personal_fit",
+            "weight": 0.2,
+            "raw_mean": 2.98,
+            "normalized": 0.495,
+            "contribution": 0.099
+        },
+        {
+            "question_id": "concept_preference",
+            "weight": 0.2,
+            "raw_mean": 3.16,
+            "normalized": 0.54,
+            "contribution": 0.108
+        }
+    ],
+    "metrics": {
+        "want_to_know_more": {
+            "n": 90,
+            "mean": 2.56,
+            "median": 2.52,
+            "std_dev": 0.32,
+            "top_2_box": 0.0,
+            "bottom_2_box": 0.0,
+            "distribution": {
+                "1": 0,
+                "2": 43,
+                "3": 46,
+                "4": 1,
+                "5": 0
+            }
+        },
+        "memorability": {
+            "n": 90,
+            "mean": 3.0,
+            "median": 2.92,
+            "std_dev": 0.26,
+            "top_2_box": 0.0,
+            "bottom_2_box": 0.0,
+            "distribution": {
+                "1": 0,
+                "2": 0,
+                "3": 83,
+                "4": 7,
+                "5": 0
+            }
+        },
+        "research_intent": {
+            "n": 90,
+            "mean": 1.85,
+            "median": 1.79,
+            "std_dev": 0.17,
+            "top_2_box": 0.0,
+            "bottom_2_box": 0.89,
+            "distribution": {
+                "1": 0,
+                "2": 89,
+                "3": 1,
+                "4": 0,
+                "5": 0
+            }
+        },
+        "personal_fit": {
+            "n": 90,
+            "mean": 2.98,
+            "median": 2.87,
+            "std_dev": 0.62,
+            "top_2_box": 0.0,
+            "bottom_2_box": 0.02,
+            "distribution": {
+                "1": 0,
+                "2": 27,
+                "3": 39,
+                "4": 24,
+                "5": 0
+            }
+        },
+        "concept_preference": {
+            "n": 90,
+            "mean": 3.16,
+            "median": 3.18,
+            "std_dev": 0.09,
+            "top_2_box": 0.0,
+            "bottom_2_box": 0.0,
+            "distribution": {
+                "1": 0,
+                "2": 0,
+                "3": 90,
+                "4": 0,
+                "5": 0
+            }
+        }
+    },
+    "dataset": null,
+    "report": null,
+    "meta": {
+        "request_id": "be03b672",
+        "concept_name": "Allwyn TV Ad Concepts",
+        "processing_time_ms": 101075,
+        "providers": {
+            "generation": "bedrock/eu.anthropic.claude-3-7-sonnet-20250219-v1:0",
+            "embedding": "bedrock/cohere.embed-multilingual-v3",
+            "vision": "bedrock/eu.anthropic.claude-3-7-sonnet-20250219-v1:0"
+        }
+    }
+}

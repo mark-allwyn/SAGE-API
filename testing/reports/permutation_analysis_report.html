@@ -1,0 +1,1662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Model Permutation Analysis Report</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3"></script>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #F9FAFB; color: #1F2937; line-height: 1.6;
+}
+.container { max-width:1400px; margin:0 auto; padding:24px; }
+h1 { font-size:28px; font-weight:700; margin-bottom:8px; }
+h2 { font-size:22px; font-weight:700; margin:32px 0 16px; padding-top:16px;
+      border-top:2px solid #E5E7EB; }
+h3 { font-size:18px; font-weight:600; margin:20px 0 12px; }
+h4 { font-size:15px; font-weight:600; margin:16px 0 8px; }
+p { margin-bottom:12px; color:#4B5563; }
+
+/* Nav */
+.nav {
+  position:sticky; top:0; z-index:100; background:#1F2937;
+  padding:10px 24px; display:flex; flex-wrap:wrap; gap:8px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.15);
+}
+.nav a {
+  color:#D1D5DB; text-decoration:none; font-size:13px;
+  padding:4px 10px; border-radius:4px; transition:all 0.2s;
+}
+.nav a:hover { background:#374151; color:#F9FAFB; }
+
+/* Cards */
+.card {
+  background:#FFFFFF; border-radius:12px; padding:24px;
+  box-shadow:0 1px 3px rgba(0,0,0,0.1); margin-bottom:20px;
+}
+.kpi-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px; margin-bottom:20px; }
+.kpi {
+  background:#FFFFFF; border-radius:12px; padding:20px; text-align:center;
+  box-shadow:0 1px 3px rgba(0,0,0,0.1); border-top:4px solid #3B82F6;
+}
+.kpi .value { font-size:36px; font-weight:700; color:#1F2937; }
+.kpi .label { font-size:13px; color:#6B7280; margin-top:4px; }
+.kpi.green { border-top-color:#10B981; }
+.kpi.red { border-top-color:#EF4444; }
+.kpi.yellow { border-top-color:#F59E0B; }
+
+.callout {
+  background:#ECFDF5; border:1px solid #10B981; border-radius:8px;
+  padding:16px 20px; margin:16px 0;
+}
+.callout.warning {
+  background:#FEF3C7; border-color:#F59E0B;
+}
+.callout strong { color:#065F46; }
+
+/* Charts */
+.chart-container { position:relative; height:400px; margin:16px 0; }
+.chart-container.tall { height:500px; }
+.chart-row { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+@media (max-width:900px) { .chart-row { grid-template-columns:1fr; } }
+
+/* Heatmaps */
+.heatmap {
+  border-collapse:collapse; width:100%; font-size:12px; margin:8px 0;
+  table-layout:fixed;
+}
+.heatmap th {
+  background:#F3F4F6; padding:4px 6px; font-weight:600;
+  border:1px solid #E5E7EB; overflow:hidden; text-overflow:ellipsis;
+}
+.heatmap td {
+  padding:4px 6px; border:1px solid #E5E7EB; text-align:center;
+  overflow:hidden; text-overflow:ellipsis;
+}
+.heatmap .row-label {
+  font-weight:600; background:#F9FAFB; text-align:left;
+  overflow:hidden; text-overflow:ellipsis;
+}
+.heatmap .heatmap-cell { color:#FFF; font-weight:500; }
+.heatmap .std-cell { background:#F9FAFB; font-weight:500; color:#6B7280; }
+@media (max-width:1100px) {
+  .heatmap { font-size:11px; }
+  .heatmap th, .heatmap td { padding:3px 4px; }
+  .card { padding:16px; }
+}
+@media (max-width:800px) {
+  .heatmap { font-size:10px; }
+  .heatmap th, .heatmap td { padding:2px 3px; }
+  .container { padding:12px; }
+  .card { padding:12px; }
+}
+
+/* Tables */
+table.data-table {
+  border-collapse:collapse; width:100%; font-size:13px; margin:8px 0;
+}
+table.data-table th {
+  background:#F3F4F6; padding:8px 12px; font-weight:600;
+  border:1px solid #E5E7EB; text-align:left; white-space:nowrap;
+}
+table.data-table td {
+  padding:6px 10px; border:1px solid #E5E7EB;
+}
+table.data-table tr.highlight {
+  background:#FEF3C7;
+}
+table.data-table tr.outlier-row {
+  background:#FEE2E2;
+}
+.mono { font-family:monospace; }
+
+/* Small multiples grid */
+.small-multiples {
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(400px,1fr)); gap:20px;
+}
+
+/* Print styles for PDF export */
+@media print {
+  .nav { display:none !important; }
+  body { background:#FFFFFF; }
+  .container { max-width:none; padding:12px 16px; }
+
+  /* Tighten section spacing */
+  h2 { margin:16px 0 10px; padding-top:10px; }
+  h3 { margin:12px 0 8px; }
+  section { margin:0; padding:0; }
+
+  /* Let everything flow naturally - no forced breaks */
+  .kpi-grid { break-inside:avoid; }
+  .callout { break-inside:avoid; }
+  .card { break-inside:auto; margin-bottom:12px; padding:16px; }
+
+  /* Small-multiples and chart rows keep 2-col layout */
+  .small-multiples { grid-template-columns:1fr 1fr; }
+  .chart-row { grid-template-columns:1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<nav class="nav"><a href="#summary">Executive Summary</a><a href="#landscape">Score Landscape</a><a href="#consensus">Consensus vs Outliers</a><a href="#factors">Factor Analysis</a><a href="#pairwise">Pairwise Similarity</a><a href="#questions">Per-Question</a><a href="#cost">Cost-Efficiency</a><a href="#findings">Findings</a></nav>
+
+<section id="summary">
+<div class="container">
+<h1>Model Permutation Analysis Report</h1>
+<p>Analysis of 36 Bedrock model permutations (9 vision x 4 embedding)
+testing the same input (90 personas, 5 Likert questions). Goal: identify which permutations
+agree, which are outliers, and the best-value consensus model (cheapest and closest to centroid).</p>
+
+<div class="card" style="background:#F0F9FF;border-left:4px solid #3B82F6;margin-bottom:20px">
+  <h3 style="margin-top:0">How the Composite Score is calculated</h3>
+  <p style="margin-bottom:8px">Each experiment runs 90 AI personas through 5 Likert-scale questions (scored 1-5).
+  The <strong>composite score</strong> is a weighted sum that combines all 5 question results into a single 0-1 number:</p>
+  <ol style="padding-left:20px;margin-bottom:8px;line-height:1.8">
+    <li>For each question, compute the <strong>mean score</strong> across all 90 personas (range 1-5).</li>
+    <li><strong>Normalize</strong> each mean to a 0-1 scale: <code style="background:#E0E7FF;padding:2px 6px;border-radius:3px">(mean - 1) / 4</code>
+    &nbsp; so Likert 1 = 0, Likert 3 = 0.5, Likert 5 = 1.0.</li>
+    <li><strong>Weight and sum</strong>: multiply each normalized score by its question weight, then sum:
+    <code style="background:#E0E7FF;padding:2px 6px;border-radius:3px">composite = sum(normalized_i x weight_i)</code></li>
+  </ol>
+  <p style="margin-bottom:0;color:#4B5563">The result is a value between 0 and 1, where higher = stronger agreement with the tested concept.
+  Weights are defined per survey and sum to 1.0, so each question's influence reflects its importance to the overall assessment.</p>
+</div>
+
+<div class="kpi-grid">
+  <div class="kpi green">
+    <div class="value">33</div>
+    <div class="label">Consensus Models</div>
+  </div>
+  <div class="kpi red">
+    <div class="value">3</div>
+    <div class="label">Outlier Models</div>
+  </div>
+  <div class="kpi yellow">
+    <div class="value">1.8x</div>
+    <div class="label">Vision Effect Multiplier</div>
+  </div>
+  <div class="kpi green">
+    <div class="value">99%</div>
+    <div class="label">Potential Cost Savings</div>
+  </div>
+</div>
+
+<div class="callout">
+  <strong>Recommendation:</strong> Use <strong>Nova 2 Lite + Titan v2</strong> at
+  <strong>$0.08/experiment</strong> (centroid distance: 0.378) -
+  the best balance of low cost and closeness to group consensus.
+</div>
+</div>
+</section>
+
+
+<section id="landscape">
+<div class="container">
+<h2>S1. Score Landscape</h2>
+<p>How composite scores vary across all 36 model permutations. The grouped bar chart shows
+each vision model as a cluster of 4 bars (one per embedding model, color-coded), making it
+easy to compare both between-model and within-model variation. The heatmap shows the full 9x4 matrix.</p>
+
+<div class="card">
+  <h3>1a. Grouped Bar: Score by Vision Model</h3>
+  <p style="font-size:13px;color:#6B7280">Each cluster of bars represents one vision model. Within each cluster, the 4 colored bars
+  show results for each embedding model. Taller bars = higher composite scores. The dashed line marks the
+  median score across all 36 permutations. Compare bar heights within a cluster to see embedding sensitivity;
+  compare clusters to see vision model differences.</p>
+  <div class="chart-container">
+    <canvas id="chart-grouped-bar"></canvas>
+  </div>
+</div>
+
+<div class="card">
+  <h3>1b. Score Matrix Heatmap</h3>
+  <p style="font-size:13px;color:#6B7280">Rows are vision models, columns are embedding models. Each cell shows the composite score
+  for that combination. Color scale runs from red (lowest) through yellow to green (highest). The "Row Std"
+  column on the right shows how much each vision model's score varies across embedding choices - lower values
+  mean the vision model is less sensitive to embedding selection.</p>
+  <table class="heatmap">
+<thead><tr><th></th>
+<th>Titan v2</th>
+<th>Titan v1</th>
+<th>Cohere EN</th>
+<th>Cohere Multi</th>
+<th>Row Std</th>
+</tr></thead><tbody>
+<tr><td class='row-label'>Opus 4.5</td>
+<td class="heatmap-cell" style="background:rgb(197,163,35)">0.499</td>
+<td class="heatmap-cell" style="background:rgb(244,154,13)">0.465</td>
+<td class="heatmap-cell" style="background:rgb(190,164,39)">0.503</td>
+<td class="heatmap-cell" style="background:rgb(160,167,54)">0.521</td>
+<td class='std-cell'>0.023</td>
+</tr>
+<tr><td class='row-label'>Sonnet 4.5</td>
+<td class="heatmap-cell" style="background:rgb(244,146,17)">0.453</td>
+<td class="heatmap-cell" style="background:rgb(192,164,38)">0.502</td>
+<td class="heatmap-cell" style="background:rgb(244,150,15)">0.459</td>
+<td class="heatmap-cell" style="background:rgb(245,158,11)">0.470</td>
+<td class='std-cell'>0.022</td>
+</tr>
+<tr><td class='row-label'>Sonnet 3.7</td>
+<td class="heatmap-cell" style="background:rgb(245,158,11)">0.470</td>
+<td class="heatmap-cell" style="background:rgb(129,171,70)">0.540</td>
+<td class="heatmap-cell" style="background:rgb(243,135,24)">0.436</td>
+<td class="heatmap-cell" style="background:rgb(243,130,28)">0.427</td>
+<td class='std-cell'>0.051</td>
+</tr>
+<tr><td class='row-label'>Sonnet 3</td>
+<td class="heatmap-cell" style="background:rgb(241,99,47)">0.380</td>
+<td class="heatmap-cell" style="background:rgb(137,170,66)">0.535</td>
+<td class="heatmap-cell" style="background:rgb(239,68,68)">0.331</td>
+<td class="heatmap-cell" style="background:rgb(239,69,66)">0.334</td>
+<td class='std-cell'>0.096</td>
+</tr>
+<tr><td class='row-label'>Haiku 4.5</td>
+<td class="heatmap-cell" style="background:rgb(243,133,26)">0.432</td>
+<td class="heatmap-cell" style="background:rgb(162,167,53)">0.520</td>
+<td class="heatmap-cell" style="background:rgb(243,128,29)">0.424</td>
+<td class="heatmap-cell" style="background:rgb(242,127,30)">0.423</td>
+<td class='std-cell'>0.047</td>
+</tr>
+<tr><td class='row-label'>Haiku 3</td>
+<td class="heatmap-cell" style="background:rgb(182,165,43)">0.508</td>
+<td class="heatmap-cell" style="background:rgb(106,174,82)">0.554</td>
+<td class="heatmap-cell" style="background:rgb(93,175,89)">0.562</td>
+<td class="heatmap-cell" style="background:rgb(198,163,34)">0.498</td>
+<td class='std-cell'>0.032</td>
+</tr>
+<tr><td class='row-label'>Nova Pro</td>
+<td class="heatmap-cell" style="background:rgb(208,162,29)">0.492</td>
+<td class="heatmap-cell" style="background:rgb(96,175,87)">0.560</td>
+<td class="heatmap-cell" style="background:rgb(88,176,91)">0.565</td>
+<td class="heatmap-cell" style="background:rgb(142,170,63)">0.532</td>
+<td class='std-cell'>0.033</td>
+</tr>
+<tr><td class='row-label'>Nova Lite</td>
+<td class="heatmap-cell" style="background:rgb(220,160,23)">0.485</td>
+<td class="heatmap-cell" style="background:rgb(108,174,81)">0.553</td>
+<td class="heatmap-cell" style="background:rgb(179,165,44)">0.510</td>
+<td class="heatmap-cell" style="background:rgb(190,164,39)">0.503</td>
+<td class='std-cell'>0.029</td>
+</tr>
+<tr><td class='row-label'>Nova 2 Lite</td>
+<td class="heatmap-cell" style="background:rgb(172,166,48)">0.514</td>
+<td class="heatmap-cell" style="background:rgb(78,177,96)">0.571</td>
+<td class="heatmap-cell" style="background:rgb(16,185,129)">0.609</td>
+<td class="heatmap-cell" style="background:rgb(67,178,102)">0.578</td>
+<td class='std-cell'>0.040</td>
+</tr>
+</tbody></table>
+</div>
+</div>
+</section>
+
+
+<section id="consensus">
+<div class="container">
+<h2>S2. Consensus vs Outliers</h2>
+<p>Using 5-dimensional per-question profiles, experiments are classified as consensus
+(within 1.5 std devs of centroid) or outliers. Threshold: 1.293.</p>
+
+<div class="card">
+  <h3>2a. Centroid Distance (sorted)</h3>
+  <p style="font-size:13px;color:#6B7280">Each horizontal bar shows how far an experiment's per-question profile
+  is from the group centroid (average profile). Green bars are consensus models; red bars are outliers that
+  exceed the dashed threshold line. Shorter bars = closer to the group consensus.</p>
+  <div class="chart-container tall">
+    <canvas id="chart-centroid-bar"></canvas>
+  </div>
+</div>
+
+<div class="card">
+  <h3>2b. Radar: Consensus Centroid vs Outlier Profiles</h3>
+  <p style="font-size:13px;color:#6B7280">Each axis represents one of the 5 Likert questions. The grey filled shape is the consensus
+  centroid (average of all consensus models). Dashed lines show outlier experiment profiles. Where an outlier's
+  line diverges from the grey shape, that question is scored differently by that model permutation.</p>
+  <div class="chart-container">
+    <canvas id="chart-radar-outliers"></canvas>
+  </div>
+</div>
+
+<div class="card">
+  <h3>2c. Outlier Detail</h3>
+  <table class="data-table">
+    <thead><tr><th>Exp</th><th>Vision</th><th>Embedding</th>
+    <th>Score</th><th>Dist from Centroid</th><th>Cost</th></tr></thead>
+    <tbody><tr class="outlier-row">
+          <td>29</td><td>Sonnet 3</td><td>Cohere EN</td>
+          <td>0.3310</td><td>1.562</td><td>$5.81</td>
+        </tr><tr class="outlier-row">
+          <td>30</td><td>Sonnet 3</td><td>Cohere Multi</td>
+          <td>0.3340</td><td>1.652</td><td>$5.81</td>
+        </tr><tr class="outlier-row">
+          <td>49</td><td>Nova 2 Lite</td><td>Cohere EN</td>
+          <td>0.6090</td><td>1.328</td><td>$0.08</td>
+        </tr></tbody>
+  </table>
+</div>
+</div>
+</section>
+
+
+<section id="factors">
+<div class="container">
+<h2>S3. Factor Analysis</h2>
+<p>Does changing the vision model or embedding model cause more variation?
+Vision model choice drives <strong>1.8x</strong> more between-group
+variation than embedding model choice.</p>
+
+<div class="chart-row">
+  <div class="card">
+    <h3>3a. Between vs Within Std Dev</h3>
+    <p style="font-size:13px;color:#6B7280">Compares two sources of variation for each factor (vision model, embedding model).
+    "Between-Group" measures how much the group averages differ. "Within-Group" measures variation inside each group.
+    A tall between-group bar relative to within-group means that factor has a strong effect on results.</p>
+    <div class="chart-container">
+      <canvas id="chart-factor-bars"></canvas>
+    </div>
+  </div>
+  <div class="card">
+    <h3>3b. Vision Model Ranges</h3>
+    <p style="font-size:13px;color:#6B7280">Each bar shows the mean composite score for a vision model (averaged across its 4 embedding
+    pairings). The vertical whiskers show the min-max range. Bar color reflects cost tier: green = cheapest,
+    yellow = moderate, orange/red = most expensive. Tall whiskers indicate high sensitivity to embedding choice.</p>
+    <div class="chart-container">
+      <canvas id="chart-vision-ranges"></canvas>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h3>3c. Per-Question Factor Decomposition</h3>
+  <p style="font-size:13px;color:#6B7280">For each of the 5 Likert questions, shows how much variation is caused by the vision model
+  choice (dark blue) vs the embedding model choice (light blue). Questions where the dark bar is much longer than
+  the light bar are most affected by which vision model is used.</p>
+  <div class="chart-container">
+    <canvas id="chart-pq-factors"></canvas>
+  </div>
+</div>
+</div>
+</section>
+
+
+<section id="pairwise">
+<div class="container">
+<h2>S4. Pairwise Similarity</h2>
+<p>How similar are the per-question profiles between model permutations?
+Lower distance = more similar results.</p>
+
+<div class="card">
+  <h3>4a. Vision Model Similarity Matrix</h3>
+  <p style="font-size:13px;color:#6B7280">A 9x9 matrix showing average Euclidean distance between each pair of vision models
+  (averaged across all embedding pairings). Green = similar (low distance), red = dissimilar (high distance).
+  The diagonal is always zero (a model compared to itself). Look for green clusters of models that produce
+  interchangeable results.</p>
+  <h4 style="margin:0 0 8px 0;font-weight:600">Average Euclidean distance between vision models (across all embedding pairings)</h4>
+<table class="heatmap">
+<thead><tr><th></th>
+<th>Opus 4.5</th>
+<th>Sonnet 4.5</th>
+<th>Sonnet 3.7</th>
+<th>Sonnet 3</th>
+<th>Haiku 4.5</th>
+<th>Haiku 3</th>
+<th>Nova Pro</th>
+<th>Nova Lite</th>
+<th>Nova 2 Lite</th>
+</tr></thead><tbody>
+<tr><td class='row-label'>Opus 4.5</td>
+<td class="heatmap-cell" style="background:rgb(16,185,129)">0.000</td>
+<td class="heatmap-cell" style="background:rgb(197,163,35)">0.736</td>
+<td class="heatmap-cell" style="background:rgb(230,159,18)">0.869</td>
+<td class="heatmap-cell" style="background:rgb(242,117,36)">1.342</td>
+<td class="heatmap-cell" style="background:rgb(235,159,16)">0.887</td>
+<td class="heatmap-cell" style="background:rgb(244,149,16)">1.019</td>
+<td class="heatmap-cell" style="background:rgb(241,158,12)">0.914</td>
+<td class="heatmap-cell" style="background:rgb(201,163,33)">0.753</td>
+<td class="heatmap-cell" style="background:rgb(244,156,12)">0.945</td>
+</tr>
+<tr><td class='row-label'>Sonnet 4.5</td>
+<td class="heatmap-cell" style="background:rgb(197,163,35)">0.736</td>
+<td class="heatmap-cell" style="background:rgb(16,185,129)">0.000</td>
+<td class="heatmap-cell" style="background:rgb(223,160,22)">0.839</td>
+<td class="heatmap-cell" style="background:rgb(242,119,35)">1.328</td>
+<td class="heatmap-cell" style="background:rgb(244,156,11)">0.940</td>
+<td class="heatmap-cell" style="background:rgb(242,121,33)">1.301</td>
+<td class="heatmap-cell" style="background:rgb(243,134,26)">1.174</td>
+<td class="heatmap-cell" style="background:rgb(197,163,35)">0.734</td>
+<td class="heatmap-cell" style="background:rgb(243,131,28)">1.204</td>
+</tr>
+<tr><td class='row-label'>Sonnet 3.7</td>
+<td class="heatmap-cell" style="background:rgb(230,159,18)">0.869</td>
+<td class="heatmap-cell" style="background:rgb(223,160,22)">0.839</td>
+<td class="heatmap-cell" style="background:rgb(16,185,129)">0.000</td>
+<td class="heatmap-cell" style="background:rgb(242,123,32)">1.282</td>
+<td class="heatmap-cell" style="background:rgb(244,153,13)">0.973</td>
+<td class="heatmap-cell" style="background:rgb(242,114,38)">1.376</td>
+<td class="heatmap-cell" style="background:rgb(242,120,34)">1.316</td>
+<td class="heatmap-cell" style="background:rgb(223,160,22)">0.841</td>
+<td class="heatmap-cell" style="background:rgb(242,117,36)">1.347</td>
+</tr>
+<tr><td class='row-label'>Sonnet 3</td>
+<td class="heatmap-cell" style="background:rgb(242,117,36)">1.342</td>
+<td class="heatmap-cell" style="background:rgb(242,119,35)">1.328</td>
+<td class="heatmap-cell" style="background:rgb(242,123,32)">1.282</td>
+<td class="heatmap-cell" style="background:rgb(16,185,129)">0.000</td>
+<td class="heatmap-cell" style="background:rgb(243,139,22)">1.117</td>
+<td class="heatmap-cell" style="background:rgb(240,83,58)">1.694</td>
+<td class="heatmap-cell" style="background:rgb(240,83,58)">1.700</td>
+<td class="heatmap-cell" style="background:rgb(241,100,47)">1.521</td>
+<td class="heatmap-cell" style="background:rgb(239,68,68)">1.855</td>
+</tr>
+<tr><td class='row-label'>Haiku 4.5</td>
+<td class="heatmap-cell" style="background:rgb(235,159,16)">0.887</td>
+<td class="heatmap-cell" style="background:rgb(244,156,11)">0.940</td>
+<td class="heatmap-cell" style="background:rgb(244,153,13)">0.973</td>
+<td class="heatmap-cell" style="background:rgb(243,139,22)">1.117</td>
+<td class="heatmap-cell" style="background:rgb(16,185,129)">0.000</td>
+<td class="heatmap-cell" style="background:rgb(242,127,30)">1.240</td>
+<td class="heatmap-cell" style="background:rgb(242,126,31)">1.256</td>
+<td class="heatmap-cell" style="background:rgb(243,140,22)">1.111</td>
+<td class="heatmap-cell" style="background:rgb(242,115,37)">1.362</td>
+</tr>
+<tr><td class='row-label'>Haiku 3</td>
+<td class="heatmap-cell" style="background:rgb(244,149,16)">1.019</td>
+<td class="heatmap-cell" style="background:rgb(242,121,33)">1.301</td>
+<td class="heatmap-cell" style="background:rgb(242,114,38)">1.376</td>
+<td class="heatmap-cell" style="background:rgb(240,83,58)">1.694</td>
+<td class="heatmap-cell" style="background:rgb(242,127,30)">1.240</td>
+<td class="heatmap-cell" style="background:rgb(16,185,129)">0.000</td>
+<td class="heatmap-cell" style="background:rgb(232,159,17)">0.875</td>
+<td class="heatmap-cell" style="background:rgb(242,125,31)">1.267</td>
+<td class="heatmap-cell" style="background:rgb(244,155,12)">0.951</td>
+</tr>
+<tr><td class='row-label'>Nova Pro</td>
+<td class="heatmap-cell" style="background:rgb(241,158,12)">0.914</td>
+<td class="heatmap-cell" style="background:rgb(243,134,26)">1.174</td>
+<td class="heatmap-cell" style="background:rgb(242,120,34)">1.316</td>
+<td class="heatmap-cell" style="background:rgb(240,83,58)">1.700</td>
+<td class="heatmap-cell" style="background:rgb(242,126,31)">1.256</td>
+<td class="heatmap-cell" style="background:rgb(232,159,17)">0.875</td>
+<td class="heatmap-cell" style="background:rgb(16,185,129)">0.000</td>
+<td class="heatmap-cell" style="background:rgb(243,136,24)">1.153</td>
+<td class="heatmap-cell" style="background:rgb(221,160,23)">0.831</td>
+</tr>
+<tr><td class='row-label'>Nova Lite</td>
+<td class="heatmap-cell" style="background:rgb(201,163,33)">0.753</td>
+<td class="heatmap-cell" style="background:rgb(197,163,35)">0.734</td>
+<td class="heatmap-cell" style="background:rgb(223,160,22)">0.841</td>
+<td class="heatmap-cell" style="background:rgb(241,100,47)">1.521</td>
+<td class="heatmap-cell" style="background:rgb(243,140,22)">1.111</td>
+<td class="heatmap-cell" style="background:rgb(242,125,31)">1.267</td>
+<td class="heatmap-cell" style="background:rgb(243,136,24)">1.153</td>
+<td class="heatmap-cell" style="background:rgb(16,185,129)">0.000</td>
+<td class="heatmap-cell" style="background:rgb(244,150,15)">1.007</td>
+</tr>
+<tr><td class='row-label'>Nova 2 Lite</td>
+<td class="heatmap-cell" style="background:rgb(244,156,12)">0.945</td>
+<td class="heatmap-cell" style="background:rgb(243,131,28)">1.204</td>
+<td class="heatmap-cell" style="background:rgb(242,117,36)">1.347</td>
+<td class="heatmap-cell" style="background:rgb(239,68,68)">1.855</td>
+<td class="heatmap-cell" style="background:rgb(242,115,37)">1.362</td>
+<td class="heatmap-cell" style="background:rgb(244,155,12)">0.951</td>
+<td class="heatmap-cell" style="background:rgb(221,160,23)">0.831</td>
+<td class="heatmap-cell" style="background:rgb(244,150,15)">1.007</td>
+<td class="heatmap-cell" style="background:rgb(16,185,129)">0.000</td>
+</tr>
+</tbody></table>
+</div>
+
+<div class="chart-row">
+  <div class="card">
+    <h3>4b. Top 10 Most Similar Pairs</h3>
+    <table class="data-table">
+      <thead><tr><th>#</th><th>A</th><th>B</th><th>Vision A</th><th>Vision B</th>
+      <th>Emb A</th><th>Emb B</th><th>Dist</th><th>Cost A</th><th>Cost B</th></tr></thead>
+      <tbody><tr>
+          <td>1</td><td>40</td><td>48</td>
+          <td>Nova Pro</td><td>Nova 2 Lite</td>
+          <td>Titan v1</td><td>Titan v1</td>
+          <td>0.106</td><td>$1.38</td><td>$0.08</td>
+        </tr><tr>
+          <td>2</td><td>24</td><td>28</td>
+          <td>Sonnet 3.7</td><td>Sonnet 3</td>
+          <td>Titan v1</td><td>Titan v1</td>
+          <td>0.164</td><td>$5.81</td><td>$5.81</td>
+        </tr><tr>
+          <td>3</td><td>28</td><td>36</td>
+          <td>Sonnet 3</td><td>Haiku 3</td>
+          <td>Titan v1</td><td>Titan v1</td>
+          <td>0.268</td><td>$5.81</td><td>$0.49</td>
+        </tr><tr>
+          <td>4</td><td>24</td><td>36</td>
+          <td>Sonnet 3.7</td><td>Haiku 3</td>
+          <td>Titan v1</td><td>Titan v1</td>
+          <td>0.285</td><td>$5.81</td><td>$0.49</td>
+        </tr><tr>
+          <td>5</td><td>39</td><td>47</td>
+          <td>Nova Pro</td><td>Nova 2 Lite</td>
+          <td>Titan v2</td><td>Titan v2</td>
+          <td>0.286</td><td>$1.38</td><td>$0.08</td>
+        </tr><tr>
+          <td>6</td><td>43</td><td>45</td>
+          <td>Nova Lite</td><td>Nova Lite</td>
+          <td>Titan v2</td><td>Cohere EN</td>
+          <td>0.289</td><td>$0.11</td><td>$0.11</td>
+        </tr><tr>
+          <td>7</td><td>15</td><td>47</td>
+          <td>Opus 4.5</td><td>Nova 2 Lite</td>
+          <td>Titan v2</td><td>Titan v2</td>
+          <td>0.295</td><td>$9.68</td><td>$0.08</td>
+        </tr><tr>
+          <td>8</td><td>36</td><td>40</td>
+          <td>Haiku 3</td><td>Nova Pro</td>
+          <td>Titan v1</td><td>Titan v1</td>
+          <td>0.314</td><td>$0.49</td><td>$1.38</td>
+        </tr><tr>
+          <td>9</td><td>24</td><td>32</td>
+          <td>Sonnet 3.7</td><td>Haiku 4.5</td>
+          <td>Titan v1</td><td>Titan v1</td>
+          <td>0.326</td><td>$5.81</td><td>$1.94</td>
+        </tr><tr>
+          <td>10</td><td>15</td><td>39</td>
+          <td>Opus 4.5</td><td>Nova Pro</td>
+          <td>Titan v2</td><td>Titan v2</td>
+          <td>0.346</td><td>$9.68</td><td>$1.38</td>
+        </tr></tbody>
+    </table>
+  </div>
+  <div class="card">
+    <h3>4c. Top 5 Most Dissimilar Pairs</h3>
+    <table class="data-table">
+      <thead><tr><th>#</th><th>A</th><th>B</th><th>Vision A</th><th>Vision B</th>
+      <th>Emb A</th><th>Emb B</th><th>Dist</th></tr></thead>
+      <tbody><tr>
+          <td>1</td><td>29</td><td>50</td>
+          <td>Sonnet 3</td><td>Nova 2 Lite</td>
+          <td>Cohere EN</td><td>Cohere Multi</td>
+          <td>2.462</td>
+        </tr><tr>
+          <td>2</td><td>29</td><td>37</td>
+          <td>Sonnet 3</td><td>Haiku 3</td>
+          <td>Cohere EN</td><td>Cohere EN</td>
+          <td>2.501</td>
+        </tr><tr>
+          <td>3</td><td>30</td><td>37</td>
+          <td>Sonnet 3</td><td>Haiku 3</td>
+          <td>Cohere Multi</td><td>Cohere EN</td>
+          <td>2.552</td>
+        </tr><tr>
+          <td>4</td><td>29</td><td>49</td>
+          <td>Sonnet 3</td><td>Nova 2 Lite</td>
+          <td>Cohere EN</td><td>Cohere EN</td>
+          <td>2.775</td>
+        </tr><tr>
+          <td>5</td><td>30</td><td>49</td>
+          <td>Sonnet 3</td><td>Nova 2 Lite</td>
+          <td>Cohere Multi</td><td>Cohere EN</td>
+          <td>2.857</td>
+        </tr></tbody>
+    </table>
+  </div>
+</div>
+</div>
+</section>
+
+
+<section id="questions">
+<div class="container">
+<h2>S5. Per-Question Deep Dive</h2>
+<p>Mean Likert scores (1-5 scale) for each question across all permutations.
+Plus a radar chart comparing Claude models vs Nova models.</p>
+
+<div class="card">
+  <h3>5a. Per-Question Score Heatmaps</h3>
+  <p style="font-size:13px;color:#6B7280">One heatmap per Likert question. Rows are vision models, columns are embedding models.
+  Each cell shows the mean score (1-5 scale) for that question under that model combination. Green = higher score,
+  red = lower score. Compare across heatmaps to see which questions are most sensitive to model choice.</p>
+  <div class="small-multiples"><div class="card"><h4 style="margin:0 0 8px 0;font-weight:600">Want To Know More</h4>
+<table class="heatmap">
+<thead><tr><th></th>
+<th>Titan v2</th>
+<th>Titan v1</th>
+<th>Cohere EN</th>
+<th>Cohere Multi</th>
+</tr></thead><tbody>
+<tr><td class='row-label'>Opus 4.5</td>
+<td class="heatmap-cell" style="background:rgb(158,168,55)">2.97</td>
+<td class="heatmap-cell" style="background:rgb(244,152,14)">2.65</td>
+<td class="heatmap-cell" style="background:rgb(145,169,62)">3.01</td>
+<td class="heatmap-cell" style="background:rgb(142,170,63)">3.02</td>
+</tr>
+<tr><td class='row-label'>Sonnet 4.5</td>
+<td class="heatmap-cell" style="background:rgb(243,135,25)">2.51</td>
+<td class="heatmap-cell" style="background:rgb(244,151,15)">2.64</td>
+<td class="heatmap-cell" style="background:rgb(189,164,39)">2.87</td>
+<td class="heatmap-cell" style="background:rgb(230,159,18)">2.74</td>
+</tr>
+<tr><td class='row-label'>Sonnet 3.7</td>
+<td class="heatmap-cell" style="background:rgb(126,171,72)">3.07</td>
+<td class="heatmap-cell" style="background:rgb(57,180,107)">3.29</td>
+<td class="heatmap-cell" style="background:rgb(202,163,32)">2.83</td>
+<td class="heatmap-cell" style="background:rgb(243,141,21)">2.56</td>
+</tr>
+<tr><td class='row-label'>Sonnet 3</td>
+<td class="heatmap-cell" style="background:rgb(243,137,23)">2.53</td>
+<td class="heatmap-cell" style="background:rgb(76,177,98)">3.23</td>
+<td class="heatmap-cell" style="background:rgb(239,72,64)">2.01</td>
+<td class="heatmap-cell" style="background:rgb(239,68,68)">1.97</td>
+</tr>
+<tr><td class='row-label'>Haiku 4.5</td>
+<td class="heatmap-cell" style="background:rgb(244,154,12)">2.67</td>
+<td class="heatmap-cell" style="background:rgb(31,183,120)">3.37</td>
+<td class="heatmap-cell" style="background:rgb(242,122,33)">2.41</td>
+<td class="heatmap-cell" style="background:rgb(241,105,44)">2.27</td>
+</tr>
+<tr><td class='row-label'>Haiku 3</td>
+<td class="heatmap-cell" style="background:rgb(154,168,57)">2.98</td>
+<td class="heatmap-cell" style="background:rgb(94,175,88)">3.17</td>
+<td class="heatmap-cell" style="background:rgb(91,176,89)">3.18</td>
+<td class="heatmap-cell" style="background:rgb(244,149,16)">2.63</td>
+</tr>
+<tr><td class='row-label'>Nova Pro</td>
+<td class="heatmap-cell" style="background:rgb(205,162,31)">2.82</td>
+<td class="heatmap-cell" style="background:rgb(57,180,107)">3.29</td>
+<td class="heatmap-cell" style="background:rgb(161,167,54)">2.96</td>
+<td class="heatmap-cell" style="background:rgb(244,147,17)">2.61</td>
+</tr>
+<tr><td class='row-label'>Nova Lite</td>
+<td class="heatmap-cell" style="background:rgb(113,173,78)">3.11</td>
+<td class="heatmap-cell" style="background:rgb(16,185,129)">3.42</td>
+<td class="heatmap-cell" style="background:rgb(38,182,117)">3.35</td>
+<td class="heatmap-cell" style="background:rgb(151,168,59)">2.99</td>
+</tr>
+<tr><td class='row-label'>Nova 2 Lite</td>
+<td class="heatmap-cell" style="background:rgb(158,168,55)">2.97</td>
+<td class="heatmap-cell" style="background:rgb(44,181,114)">3.33</td>
+<td class="heatmap-cell" style="background:rgb(38,182,117)">3.35</td>
+<td class="heatmap-cell" style="background:rgb(79,177,96)">3.22</td>
+</tr>
+</tbody></table></div><div class="card"><h4 style="margin:0 0 8px 0;font-weight:600">Memorability</h4>
+<table class="heatmap">
+<thead><tr><th></th>
+<th>Titan v2</th>
+<th>Titan v1</th>
+<th>Cohere EN</th>
+<th>Cohere Multi</th>
+</tr></thead><tbody>
+<tr><td class='row-label'>Opus 4.5</td>
+<td class="heatmap-cell" style="background:rgb(244,146,18)">3.03</td>
+<td class="heatmap-cell" style="background:rgb(243,134,25)">2.90</td>
+<td class="heatmap-cell" style="background:rgb(241,105,44)">2.59</td>
+<td class="heatmap-cell" style="background:rgb(149,169,60)">3.55</td>
+</tr>
+<tr><td class='row-label'>Sonnet 4.5</td>
+<td class="heatmap-cell" style="background:rgb(242,113,38)">2.68</td>
+<td class="heatmap-cell" style="background:rgb(244,144,19)">3.01</td>
+<td class="heatmap-cell" style="background:rgb(239,68,68)">2.19</td>
+<td class="heatmap-cell" style="background:rgb(244,143,19)">3.00</td>
+</tr>
+<tr><td class='row-label'>Sonnet 3.7</td>
+<td class="heatmap-cell" style="background:rgb(241,109,41)">2.63</td>
+<td class="heatmap-cell" style="background:rgb(243,139,22)">2.95</td>
+<td class="heatmap-cell" style="background:rgb(239,77,62)">2.29</td>
+<td class="heatmap-cell" style="background:rgb(244,143,19)">3.00</td>
+</tr>
+<tr><td class='row-label'>Sonnet 3</td>
+<td class="heatmap-cell" style="background:rgb(241,108,42)">2.62</td>
+<td class="heatmap-cell" style="background:rgb(243,137,24)">2.93</td>
+<td class="heatmap-cell" style="background:rgb(239,69,66)">2.21</td>
+<td class="heatmap-cell" style="background:rgb(243,129,28)">2.85</td>
+</tr>
+<tr><td class='row-label'>Haiku 4.5</td>
+<td class="heatmap-cell" style="background:rgb(242,120,34)">2.75</td>
+<td class="heatmap-cell" style="background:rgb(243,141,21)">2.97</td>
+<td class="heatmap-cell" style="background:rgb(240,83,58)">2.35</td>
+<td class="heatmap-cell" style="background:rgb(243,142,21)">2.98</td>
+</tr>
+<tr><td class='row-label'>Haiku 3</td>
+<td class="heatmap-cell" style="background:rgb(137,170,66)">3.60</td>
+<td class="heatmap-cell" style="background:rgb(244,157,11)">3.14</td>
+<td class="heatmap-cell" style="background:rgb(209,162,29)">3.30</td>
+<td class="heatmap-cell" style="background:rgb(58,179,106)">3.93</td>
+</tr>
+<tr><td class='row-label'>Nova Pro</td>
+<td class="heatmap-cell" style="background:rgb(211,161,28)">3.29</td>
+<td class="heatmap-cell" style="background:rgb(240,158,13)">3.17</td>
+<td class="heatmap-cell" style="background:rgb(58,179,106)">3.93</td>
+<td class="heatmap-cell" style="background:rgb(16,185,129)">4.11</td>
+</tr>
+<tr><td class='row-label'>Nova Lite</td>
+<td class="heatmap-cell" style="background:rgb(241,105,44)">2.59</td>
+<td class="heatmap-cell" style="background:rgb(242,124,32)">2.79</td>
+<td class="heatmap-cell" style="background:rgb(241,109,41)">2.63</td>
+<td class="heatmap-cell" style="background:rgb(243,133,26)">2.89</td>
+</tr>
+<tr><td class='row-label'>Nova 2 Lite</td>
+<td class="heatmap-cell" style="background:rgb(218,161,24)">3.26</td>
+<td class="heatmap-cell" style="background:rgb(235,159,15)">3.19</td>
+<td class="heatmap-cell" style="background:rgb(185,165,41)">3.40</td>
+<td class="heatmap-cell" style="background:rgb(123,172,73)">3.66</td>
+</tr>
+</tbody></table></div><div class="card"><h4 style="margin:0 0 8px 0;font-weight:600">Research Intent</h4>
+<table class="heatmap">
+<thead><tr><th></th>
+<th>Titan v2</th>
+<th>Titan v1</th>
+<th>Cohere EN</th>
+<th>Cohere Multi</th>
+</tr></thead><tbody>
+<tr><td class='row-label'>Opus 4.5</td>
+<td class="heatmap-cell" style="background:rgb(244,156,11)">2.89</td>
+<td class="heatmap-cell" style="background:rgb(242,126,30)">2.54</td>
+<td class="heatmap-cell" style="background:rgb(215,161,26)">3.04</td>
+<td class="heatmap-cell" style="background:rgb(243,132,26)">2.61</td>
+</tr>
+<tr><td class='row-label'>Sonnet 4.5</td>
+<td class="heatmap-cell" style="background:rgb(243,133,26)">2.62</td>
+<td class="heatmap-cell" style="background:rgb(244,149,16)">2.81</td>
+<td class="heatmap-cell" style="background:rgb(243,140,22)">2.70</td>
+<td class="heatmap-cell" style="background:rgb(241,105,44)">2.29</td>
+</tr>
+<tr><td class='row-label'>Sonnet 3.7</td>
+<td class="heatmap-cell" style="background:rgb(243,131,28)">2.59</td>
+<td class="heatmap-cell" style="background:rgb(220,160,23)">3.02</td>
+<td class="heatmap-cell" style="background:rgb(241,101,46)">2.24</td>
+<td class="heatmap-cell" style="background:rgb(239,68,68)">1.85</td>
+</tr>
+<tr><td class='row-label'>Sonnet 3</td>
+<td class="heatmap-cell" style="background:rgb(242,123,32)">2.50</td>
+<td class="heatmap-cell" style="background:rgb(226,160,20)">2.99</td>
+<td class="heatmap-cell" style="background:rgb(240,92,52)">2.14</td>
+<td class="heatmap-cell" style="background:rgb(239,77,62)">1.96</td>
+</tr>
+<tr><td class='row-label'>Haiku 4.5</td>
+<td class="heatmap-cell" style="background:rgb(243,135,25)">2.64</td>
+<td class="heatmap-cell" style="background:rgb(241,158,12)">2.92</td>
+<td class="heatmap-cell" style="background:rgb(215,161,26)">3.04</td>
+<td class="heatmap-cell" style="background:rgb(243,131,28)">2.59</td>
+</tr>
+<tr><td class='row-label'>Haiku 3</td>
+<td class="heatmap-cell" style="background:rgb(244,156,11)">2.89</td>
+<td class="heatmap-cell" style="background:rgb(220,160,23)">3.02</td>
+<td class="heatmap-cell" style="background:rgb(16,185,129)">3.96</td>
+<td class="heatmap-cell" style="background:rgb(237,158,14)">2.94</td>
+</tr>
+<tr><td class='row-label'>Nova Pro</td>
+<td class="heatmap-cell" style="background:rgb(244,143,20)">2.73</td>
+<td class="heatmap-cell" style="background:rgb(202,162,32)">3.10</td>
+<td class="heatmap-cell" style="background:rgb(174,166,47)">3.23</td>
+<td class="heatmap-cell" style="background:rgb(230,159,18)">2.97</td>
+</tr>
+<tr><td class='row-label'>Nova Lite</td>
+<td class="heatmap-cell" style="background:rgb(243,135,25)">2.64</td>
+<td class="heatmap-cell" style="background:rgb(244,156,11)">2.89</td>
+<td class="heatmap-cell" style="background:rgb(243,136,24)">2.65</td>
+<td class="heatmap-cell" style="background:rgb(242,127,30)">2.55</td>
+</tr>
+<tr><td class='row-label'>Nova 2 Lite</td>
+<td class="heatmap-cell" style="background:rgb(244,153,13)">2.85</td>
+<td class="heatmap-cell" style="background:rgb(185,165,41)">3.18</td>
+<td class="heatmap-cell" style="background:rgb(26,183,123)">3.91</td>
+<td class="heatmap-cell" style="background:rgb(180,165,43)">3.20</td>
+</tr>
+</tbody></table></div><div class="card"><h4 style="margin:0 0 8px 0;font-weight:600">Personal Fit</h4>
+<table class="heatmap">
+<thead><tr><th></th>
+<th>Titan v2</th>
+<th>Titan v1</th>
+<th>Cohere EN</th>
+<th>Cohere Multi</th>
+</tr></thead><tbody>
+<tr><td class='row-label'>Opus 4.5</td>
+<td class="heatmap-cell" style="background:rgb(168,167,50)">3.20</td>
+<td class="heatmap-cell" style="background:rgb(224,160,21)">3.00</td>
+<td class="heatmap-cell" style="background:rgb(113,173,78)">3.40</td>
+<td class="heatmap-cell" style="background:rgb(129,171,70)">3.34</td>
+</tr>
+<tr><td class='row-label'>Sonnet 4.5</td>
+<td class="heatmap-cell" style="background:rgb(127,171,71)">3.35</td>
+<td class="heatmap-cell" style="background:rgb(96,175,87)">3.46</td>
+<td class="heatmap-cell" style="background:rgb(113,173,78)">3.40</td>
+<td class="heatmap-cell" style="background:rgb(115,173,77)">3.39</td>
+</tr>
+<tr><td class='row-label'>Sonnet 3.7</td>
+<td class="heatmap-cell" style="background:rgb(210,162,28)">3.05</td>
+<td class="heatmap-cell" style="background:rgb(146,169,61)">3.28</td>
+<td class="heatmap-cell" style="background:rgb(182,165,43)">3.15</td>
+<td class="heatmap-cell" style="background:rgb(229,159,18)">2.98</td>
+</tr>
+<tr><td class='row-label'>Sonnet 3</td>
+<td class="heatmap-cell" style="background:rgb(239,72,65)">2.14</td>
+<td class="heatmap-cell" style="background:rgb(115,173,77)">3.39</td>
+<td class="heatmap-cell" style="background:rgb(241,100,47)">2.40</td>
+<td class="heatmap-cell" style="background:rgb(239,68,68)">2.10</td>
+</tr>
+<tr><td class='row-label'>Haiku 4.5</td>
+<td class="heatmap-cell" style="background:rgb(243,133,26)">2.70</td>
+<td class="heatmap-cell" style="background:rgb(221,160,23)">3.01</td>
+<td class="heatmap-cell" style="background:rgb(243,135,25)">2.72</td>
+<td class="heatmap-cell" style="background:rgb(243,132,27)">2.69</td>
+</tr>
+<tr><td class='row-label'>Haiku 3</td>
+<td class="heatmap-cell" style="background:rgb(244,150,15)">2.86</td>
+<td class="heatmap-cell" style="background:rgb(99,175,86)">3.45</td>
+<td class="heatmap-cell" style="background:rgb(218,161,24)">3.02</td>
+<td class="heatmap-cell" style="background:rgb(244,146,18)">2.82</td>
+</tr>
+<tr><td class='row-label'>Nova Pro</td>
+<td class="heatmap-cell" style="background:rgb(179,165,44)">3.16</td>
+<td class="heatmap-cell" style="background:rgb(60,179,106)">3.59</td>
+<td class="heatmap-cell" style="background:rgb(149,169,60)">3.27</td>
+<td class="heatmap-cell" style="background:rgb(207,162,30)">3.06</td>
+</tr>
+<tr><td class='row-label'>Nova Lite</td>
+<td class="heatmap-cell" style="background:rgb(110,173,80)">3.41</td>
+<td class="heatmap-cell" style="background:rgb(16,185,129)">3.75</td>
+<td class="heatmap-cell" style="background:rgb(79,177,96)">3.52</td>
+<td class="heatmap-cell" style="background:rgb(63,179,104)">3.58</td>
+</tr>
+<tr><td class='row-label'>Nova 2 Lite</td>
+<td class="heatmap-cell" style="background:rgb(121,172,74)">3.37</td>
+<td class="heatmap-cell" style="background:rgb(46,181,113)">3.64</td>
+<td class="heatmap-cell" style="background:rgb(68,178,101)">3.56</td>
+<td class="heatmap-cell" style="background:rgb(65,179,103)">3.57</td>
+</tr>
+</tbody></table></div><div class="card"><h4 style="margin:0 0 8px 0;font-weight:600">Concept Preference</h4>
+<table class="heatmap">
+<thead><tr><th></th>
+<th>Titan v2</th>
+<th>Titan v1</th>
+<th>Cohere EN</th>
+<th>Cohere Multi</th>
+</tr></thead><tbody>
+<tr><td class='row-label'>Opus 4.5</td>
+<td class="heatmap-cell" style="background:rgb(243,133,26)">2.88</td>
+<td class="heatmap-cell" style="background:rgb(85,176,93)">3.20</td>
+<td class="heatmap-cell" style="background:rgb(210,162,28)">3.02</td>
+<td class="heatmap-cell" style="background:rgb(243,141,21)">2.91</td>
+</tr>
+<tr><td class='row-label'>Sonnet 4.5</td>
+<td class="heatmap-cell" style="background:rgb(243,136,24)">2.89</td>
+<td class="heatmap-cell" style="background:rgb(140,170,64)">3.12</td>
+<td class="heatmap-cell" style="background:rgb(217,161,25)">3.01</td>
+<td class="heatmap-cell" style="background:rgb(244,158,11)">2.97</td>
+</tr>
+<tr><td class='row-label'>Sonnet 3.7</td>
+<td class="heatmap-cell" style="background:rgb(175,166,46)">3.07</td>
+<td class="heatmap-cell" style="background:rgb(43,181,114)">3.26</td>
+<td class="heatmap-cell" style="background:rgb(71,178,100)">3.22</td>
+<td class="heatmap-cell" style="background:rgb(113,173,78)">3.16</td>
+</tr>
+<tr><td class='row-label'>Sonnet 3</td>
+<td class="heatmap-cell" style="background:rgb(242,114,38)">2.81</td>
+<td class="heatmap-cell" style="background:rgb(113,173,78)">3.16</td>
+<td class="heatmap-cell" style="background:rgb(242,125,31)">2.85</td>
+<td class="heatmap-cell" style="background:rgb(241,111,40)">2.80</td>
+</tr>
+<tr><td class='row-label'>Haiku 4.5</td>
+<td class="heatmap-cell" style="background:rgb(243,130,28)">2.87</td>
+<td class="heatmap-cell" style="background:rgb(133,171,68)">3.13</td>
+<td class="heatmap-cell" style="background:rgb(244,155,12)">2.96</td>
+<td class="heatmap-cell" style="background:rgb(244,147,17)">2.93</td>
+</tr>
+<tr><td class='row-label'>Haiku 3</td>
+<td class="heatmap-cell" style="background:rgb(242,122,33)">2.84</td>
+<td class="heatmap-cell" style="background:rgb(16,185,129)">3.30</td>
+<td class="heatmap-cell" style="background:rgb(241,108,42)">2.79</td>
+<td class="heatmap-cell" style="background:rgb(239,68,68)">2.64</td>
+</tr>
+<tr><td class='row-label'>Nova Pro</td>
+<td class="heatmap-cell" style="background:rgb(242,119,35)">2.83</td>
+<td class="heatmap-cell" style="background:rgb(182,165,43)">3.06</td>
+<td class="heatmap-cell" style="background:rgb(243,138,23)">2.90</td>
+<td class="heatmap-cell" style="background:rgb(243,133,26)">2.88</td>
+</tr>
+<tr><td class='row-label'>Nova Lite</td>
+<td class="heatmap-cell" style="background:rgb(244,149,16)">2.94</td>
+<td class="heatmap-cell" style="background:rgb(85,176,93)">3.20</td>
+<td class="heatmap-cell" style="background:rgb(189,164,39)">3.05</td>
+<td class="heatmap-cell" style="background:rgb(196,163,36)">3.04</td>
+</tr>
+<tr><td class='row-label'>Nova 2 Lite</td>
+<td class="heatmap-cell" style="background:rgb(242,117,36)">2.82</td>
+<td class="heatmap-cell" style="background:rgb(168,167,50)">3.08</td>
+<td class="heatmap-cell" style="background:rgb(244,152,14)">2.95</td>
+<td class="heatmap-cell" style="background:rgb(243,138,23)">2.90</td>
+</tr>
+</tbody></table></div></div>
+</div>
+
+<div class="card">
+  <h3>5b. Radar: Claude vs Nova Model Families</h3>
+  <p style="font-size:13px;color:#6B7280">Each axis is a question. Solid lines are Claude-family models (Opus, Sonnet, Haiku),
+  dashed lines are Nova-family models. Where the shapes overlap, the model families agree. Diverging axes highlight
+  questions where Claude and Nova models score differently.</p>
+  <div class="chart-container">
+    <canvas id="chart-radar-families"></canvas>
+  </div>
+</div>
+</div>
+</section>
+
+
+<section id="cost">
+<div class="container">
+<h2>S6. Cost-Efficiency Analysis</h2>
+<p>The key question: which model permutation gives consensus results at the lowest cost?
+Among the 33 consensus models, the cheapest option delivers the same
+analytical conclusions at a fraction of the price.</p>
+
+<div class="card">
+  <h3>6a. THE KEY CHART: Cost vs Centroid Distance</h3>
+  <p style="font-size:13px;color:#6B7280">Each bubble is one experiment. X-axis = estimated cost (log scale),
+  Y-axis = distance from consensus centroid (higher = more divergent). Bubble size = processing time.
+  Green = consensus, red = outlier. The ideal zone (bottom-left box) highlights cheap models that agree with
+  consensus. Hover over any bubble to see the exact model combination and metrics.</p>
+  <div class="chart-container tall">
+    <canvas id="chart-cost-scatter"></canvas>
+  </div>
+</div>
+
+<div class="card">
+  <h3>6b. Full Cost Breakdown (Consensus Models)</h3>
+  <table class="data-table">
+    <thead><tr><th>Exp</th><th>Vision</th><th>Embedding</th><th>Score</th>
+    <th>Dist</th><th>Cost</th><th>Time</th></tr></thead>
+    <tbody><tr>
+          <td>48</td><td>Nova 2 Lite</td><td>Titan v1</td>
+          <td>0.5710</td><td>0.783</td>
+          <td>$0.08</td><td>119s</td>
+        </tr><tr>
+          <td>50</td><td>Nova 2 Lite</td><td>Cohere Multi</td>
+          <td>0.5780</td><td>0.932</td>
+          <td>$0.08</td><td>82s</td>
+        </tr><tr class="highlight">
+          <td>47</td><td>Nova 2 Lite</td><td>Titan v2</td>
+          <td>0.5140</td><td>0.378</td>
+          <td>$0.08</td><td>164s</td>
+        </tr><tr>
+          <td>44</td><td>Nova Lite</td><td>Titan v1</td>
+          <td>0.5530</td><td>0.856</td>
+          <td>$0.11</td><td>79s</td>
+        </tr><tr>
+          <td>45</td><td>Nova Lite</td><td>Cohere EN</td>
+          <td>0.5100</td><td>0.716</td>
+          <td>$0.11</td><td>76s</td>
+        </tr><tr>
+          <td>46</td><td>Nova Lite</td><td>Cohere Multi</td>
+          <td>0.5030</td><td>0.514</td>
+          <td>$0.11</td><td>74s</td>
+        </tr><tr>
+          <td>43</td><td>Nova Lite</td><td>Titan v2</td>
+          <td>0.4850</td><td>0.560</td>
+          <td>$0.11</td><td>85s</td>
+        </tr><tr>
+          <td>36</td><td>Haiku 3</td><td>Titan v1</td>
+          <td>0.5540</td><td>0.574</td>
+          <td>$0.49</td><td>93s</td>
+        </tr><tr>
+          <td>37</td><td>Haiku 3</td><td>Cohere EN</td>
+          <td>0.5620</td><td>1.257</td>
+          <td>$0.49</td><td>92s</td>
+        </tr><tr>
+          <td>38</td><td>Haiku 3</td><td>Cohere Multi</td>
+          <td>0.4980</td><td>1.081</td>
+          <td>$0.49</td><td>97s</td>
+        </tr><tr>
+          <td>35</td><td>Haiku 3</td><td>Titan v2</td>
+          <td>0.5080</td><td>0.690</td>
+          <td>$0.49</td><td>97s</td>
+        </tr><tr>
+          <td>40</td><td>Nova Pro</td><td>Titan v1</td>
+          <td>0.5600</td><td>0.684</td>
+          <td>$1.38</td><td>84s</td>
+        </tr><tr>
+          <td>41</td><td>Nova Pro</td><td>Cohere EN</td>
+          <td>0.5650</td><td>1.029</td>
+          <td>$1.38</td><td>142s</td>
+        </tr><tr>
+          <td>42</td><td>Nova Pro</td><td>Cohere Multi</td>
+          <td>0.5320</td><td>1.157</td>
+          <td>$1.38</td><td>84s</td>
+        </tr><tr>
+          <td>39</td><td>Nova Pro</td><td>Titan v2</td>
+          <td>0.4920</td><td>0.334</td>
+          <td>$1.38</td><td>98s</td>
+        </tr><tr>
+          <td>32</td><td>Haiku 4.5</td><td>Titan v1</td>
+          <td>0.5200</td><td>0.540</td>
+          <td>$1.94</td><td>132s</td>
+        </tr><tr>
+          <td>33</td><td>Haiku 4.5</td><td>Cohere EN</td>
+          <td>0.4240</td><td>0.958</td>
+          <td>$1.94</td><td>102s</td>
+        </tr><tr>
+          <td>34</td><td>Haiku 4.5</td><td>Cohere Multi</td>
+          <td>0.4230</td><td>0.807</td>
+          <td>$1.94</td><td>98s</td>
+        </tr><tr>
+          <td>31</td><td>Haiku 4.5</td><td>Titan v2</td>
+          <td>0.4320</td><td>0.604</td>
+          <td>$1.94</td><td>139s</td>
+        </tr><tr>
+          <td>20</td><td>Sonnet 4.5</td><td>Titan v1</td>
+          <td>0.5020</td><td>0.413</td>
+          <td>$5.81</td><td>176s</td>
+        </tr><tr>
+          <td>21</td><td>Sonnet 4.5</td><td>Cohere EN</td>
+          <td>0.4590</td><td>0.860</td>
+          <td>$5.81</td><td>195s</td>
+        </tr><tr>
+          <td>22</td><td>Sonnet 4.5</td><td>Cohere Multi</td>
+          <td>0.4700</td><td>0.576</td>
+          <td>$5.81</td><td>116s</td>
+        </tr><tr>
+          <td>24</td><td>Sonnet 3.7</td><td>Titan v1</td>
+          <td>0.5400</td><td>0.552</td>
+          <td>$5.81</td><td>620s</td>
+        </tr><tr>
+          <td>25</td><td>Sonnet 3.7</td><td>Cohere EN</td>
+          <td>0.4360</td><td>0.942</td>
+          <td>$5.81</td><td>171s</td>
+        </tr><tr>
+          <td>26</td><td>Sonnet 3.7</td><td>Cohere Multi</td>
+          <td>0.4270</td><td>1.034</td>
+          <td>$5.81</td><td>101s</td>
+        </tr><tr>
+          <td>28</td><td>Sonnet 3</td><td>Titan v1</td>
+          <td>0.5350</td><td>0.493</td>
+          <td>$5.81</td><td>303s</td>
+        </tr><tr>
+          <td>19</td><td>Sonnet 4.5</td><td>Titan v2</td>
+          <td>0.4530</td><td>0.573</td>
+          <td>$5.81</td><td>123s</td>
+        </tr><tr>
+          <td>23</td><td>Sonnet 3.7</td><td>Titan v2</td>
+          <td>0.4700</td><td>0.489</td>
+          <td>$5.81</td><td>622s</td>
+        </tr><tr>
+          <td>27</td><td>Sonnet 3</td><td>Titan v2</td>
+          <td>0.3800</td><td>1.200</td>
+          <td>$5.81</td><td>318s</td>
+        </tr><tr>
+          <td>16</td><td>Opus 4.5</td><td>Titan v1</td>
+          <td>0.4650</td><td>0.455</td>
+          <td>$9.68</td><td>157s</td>
+        </tr><tr>
+          <td>17</td><td>Opus 4.5</td><td>Cohere EN</td>
+          <td>0.5030</td><td>0.556</td>
+          <td>$9.68</td><td>137s</td>
+        </tr><tr>
+          <td>18</td><td>Opus 4.5</td><td>Cohere Multi</td>
+          <td>0.5210</td><td>0.618</td>
+          <td>$9.68</td><td>132s</td>
+        </tr><tr>
+          <td>15</td><td>Opus 4.5</td><td>Titan v2</td>
+          <td>0.4990</td><td>0.168</td>
+          <td>$9.68</td><td>166s</td>
+        </tr></tbody>
+  </table>
+</div>
+
+<div class="card">
+  <h3>6c. Cost vs Distance by Vision Model</h3>
+  <p style="font-size:13px;color:#6B7280">Blue bars show average cost per vision model (left axis). The red line
+  shows average centroid distance (right axis). The best value models have short blue bars (cheap) and low red dots
+  (close to consensus). Models where the red dot is high despite a tall blue bar are expensive and divergent.</p>
+  <div class="chart-container">
+    <canvas id="chart-cost-bar-line"></canvas>
+  </div>
+</div>
+</div>
+</section>
+
+
+<section id="findings">
+<div class="container">
+<h2>S7. Key Findings & Recommendation</h2>
+
+<div class="card">
+  <h3>Findings</h3>
+  <ol style="padding-left:20px;line-height:2">
+    <li>33 of 36 permutations (91%) produce consistent results within the consensus cluster.</li>
+<li>3 outlier permutations identified, involving: Nova 2 Lite, Sonnet 3.</li>
+<li>Vision model choice drives 1.8x more variation than embedding model choice.</li>
+<li>Most consistent vision model (across embeddings): Sonnet 4.5 (std dev 0.0218).</li>
+<li>Least consistent vision model: Sonnet 3 (std dev 0.0960).</li>
+<li>Most consistent embedding model: Titan v1 (std dev 0.0332).</li>
+<li>Best value model: Nova 2 Lite + Titan v2 ($0.08, centroid dist 0.378) - 99% cheaper than Opus 4.5 + Titan v2 ($9.68).</li>
+<li>Composite score range: 0.438 to 0.567 (median 0.5025, std dev 0.0648).</li>
+<li>Amazon Nova models: 11 of 12 permutations are in the consensus cluster, validating them as cost-effective alternatives.</li>
+  </ol>
+</div>
+
+<div class="callout" style="margin-top:20px;">
+  <h3 style="color:#065F46;margin-bottom:8px">Recommendation</h3>
+  <p style="font-size:16px;margin-bottom:8px">
+    Use <strong>Nova 2 Lite + Titan v2</strong> at <strong>$0.08/experiment</strong>
+    (centroid distance: 0.378).
+  </p>
+  <p style="margin-bottom:0">
+    This model offers the best balance of low cost and closeness to the group
+    consensus centroid (including premium models like Opus 4.5 and Sonnet 4.5),
+    delivering <strong>99% cost savings</strong> compared
+    to the most expensive consensus option ($9.68).
+  </p>
+</div>
+</div>
+</section>
+
+
+<script>
+const DATA = {"n_experiments": 36, "n_consensus": 33, "n_outliers": 3, "vision_effect": 1.8, "savings_pct": 99.0, "cheapest": {"exp": 48, "vision": "Nova 2 Lite", "embedding": "Titan v1", "score": 0.571, "dist": 0.7827569293809078, "cost": 0.07739999999999998, "time_s": 118.834, "value_score": 0.56485340367706}, "best_value": {"exp": 47, "vision": "Nova 2 Lite", "embedding": "Titan v2", "score": 0.514, "dist": 0.37789265001885275, "cost": 0.0783, "time_s": 163.814, "value_score": 0.19316635656319928}, "most_expensive": {"exp": 15, "vision": "Opus 4.5", "embedding": "Titan v2", "score": 0.499, "dist": 0.16763906149305274, "cost": 9.6849, "time_s": 166.444, "value_score": 1.0}, "median": 0.5025, "std": 0.06475073082874928, "threshold": 1.292653232787621, "centroid": [2.8888888888888893, 3.0100000000000007, 2.7969444444444442, 3.1605555555555553, 2.984444444444444], "centroid_bounds": {"want_to_know_more": {"center": 2.8888888888888893, "upper": 3.264858323647908, "lower": 2.5129194541298707}, "memorability": {"center": 3.0100000000000007, "upper": 3.481083856653994, "lower": 2.5389161433460075}, "research_intent": {"center": 2.7969444444444442, "upper": 3.230447250132807, "lower": 2.3634416387560813}, "personal_fit": {"center": 3.1605555555555553, "upper": 3.563806235791945, "lower": 2.7573048753191656}, "concept_preference": {"center": 2.984444444444444, "upper": 3.1391689820578508, "lower": 2.829719906831037}}, "consensus": [15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 50], "outliers": [29, 30, 49], "centroid_dists": {"15": 0.16763906149305274, "16": 0.4554455321068041, "17": 0.5556453399671064, "18": 0.617641184439678, "19": 0.5732146867976208, "20": 0.41250261877208444, "21": 0.8603149096854952, "22": 0.5762932986330681, "23": 0.48945839619413894, "24": 0.5517623979822842, "25": 0.9421533075557674, "26": 1.0336303709872114, "27": 1.2004339814530245, "28": 0.4934488259456708, "29": 1.5622233335305045, "30": 1.6520383266486431, "31": 0.6044442529615709, "32": 0.5404294274457884, "33": 0.9584869844618219, "34": 0.806930101230339, "35": 0.690114780666105, "36": 0.5736119182130455, "37": 1.2566258036877274, "38": 1.0809756752553805, "39": 0.33388715566198235, "40": 0.6844442753426918, "41": 1.0286412663986755, "42": 1.157042479506572, "43": 0.5604636666233939, "44": 0.8561818144428883, "45": 0.7156213845668554, "46": 0.5144172209019584, "47": 0.37789265001885275, "48": 0.7827569293809078, "49": 1.3282915382150966, "50": 0.9323968929856975}, "all_exps": [{"exp": 15, "vision": "Opus 4.5", "embedding": "Titan v2", "score": 0.499, "dist": 0.16763906149305274, "cost": 9.6849, "time_s": 166.444, "is_outlier": false}, {"exp": 16, "vision": "Opus 4.5", "embedding": "Titan v1", "score": 0.465, "dist": 0.4554455321068041, "cost": 9.684000000000001, "time_s": 157.145, "is_outlier": false}, {"exp": 17, "vision": "Opus 4.5", "embedding": "Cohere EN", "score": 0.503, "dist": 0.5556453399671064, "cost": 9.684000000000001, "time_s": 136.92, "is_outlier": false}, {"exp": 18, "vision": "Opus 4.5", "embedding": "Cohere Multi", "score": 0.521, "dist": 0.617641184439678, "cost": 9.684000000000001, "time_s": 132.248, "is_outlier": false}, {"exp": 19, "vision": "Sonnet 4.5", "embedding": "Titan v2", "score": 0.453, "dist": 0.5732146867976208, "cost": 5.8149, "time_s": 123.497, "is_outlier": false}, {"exp": 20, "vision": "Sonnet 4.5", "embedding": "Titan v1", "score": 0.502, "dist": 0.41250261877208444, "cost": 5.814, "time_s": 175.862, "is_outlier": false}, {"exp": 21, "vision": "Sonnet 4.5", "embedding": "Cohere EN", "score": 0.459, "dist": 0.8603149096854952, "cost": 5.814, "time_s": 195.382, "is_outlier": false}, {"exp": 22, "vision": "Sonnet 4.5", "embedding": "Cohere Multi", "score": 0.47, "dist": 0.5762932986330681, "cost": 5.814, "time_s": 115.776, "is_outlier": false}, {"exp": 23, "vision": "Sonnet 3.7", "embedding": "Titan v2", "score": 0.47, "dist": 0.48945839619413894, "cost": 5.8149, "time_s": 622.292, "is_outlier": false}, {"exp": 24, "vision": "Sonnet 3.7", "embedding": "Titan v1", "score": 0.54, "dist": 0.5517623979822842, "cost": 5.814, "time_s": 619.876, "is_outlier": false}, {"exp": 25, "vision": "Sonnet 3.7", "embedding": "Cohere EN", "score": 0.436, "dist": 0.9421533075557674, "cost": 5.814, "time_s": 171.166, "is_outlier": false}, {"exp": 26, "vision": "Sonnet 3.7", "embedding": "Cohere Multi", "score": 0.427, "dist": 1.0336303709872114, "cost": 5.814, "time_s": 101.075, "is_outlier": false}, {"exp": 27, "vision": "Sonnet 3", "embedding": "Titan v2", "score": 0.38, "dist": 1.2004339814530245, "cost": 5.8149, "time_s": 317.505, "is_outlier": false}, {"exp": 28, "vision": "Sonnet 3", "embedding": "Titan v1", "score": 0.535, "dist": 0.4934488259456708, "cost": 5.814, "time_s": 302.887, "is_outlier": false}, {"exp": 29, "vision": "Sonnet 3", "embedding": "Cohere EN", "score": 0.331, "dist": 1.5622233335305045, "cost": 5.814, "time_s": 290.163, "is_outlier": true}, {"exp": 30, "vision": "Sonnet 3", "embedding": "Cohere Multi", "score": 0.334, "dist": 1.6520383266486431, "cost": 5.814, "time_s": 283.108, "is_outlier": true}, {"exp": 31, "vision": "Haiku 4.5", "embedding": "Titan v2", "score": 0.432, "dist": 0.6044442529615709, "cost": 1.9449, "time_s": 139.069, "is_outlier": false}, {"exp": 32, "vision": "Haiku 4.5", "embedding": "Titan v1", "score": 0.52, "dist": 0.5404294274457884, "cost": 1.944, "time_s": 132.095, "is_outlier": false}, {"exp": 33, "vision": "Haiku 4.5", "embedding": "Cohere EN", "score": 0.424, "dist": 0.9584869844618219, "cost": 1.944, "time_s": 102.389, "is_outlier": false}, {"exp": 34, "vision": "Haiku 4.5", "embedding": "Cohere Multi", "score": 0.423, "dist": 0.806930101230339, "cost": 1.944, "time_s": 97.888, "is_outlier": false}, {"exp": 35, "vision": "Haiku 3", "embedding": "Titan v2", "score": 0.508, "dist": 0.690114780666105, "cost": 0.49365000000000003, "time_s": 97.408, "is_outlier": false}, {"exp": 36, "vision": "Haiku 3", "embedding": "Titan v1", "score": 0.554, "dist": 0.5736119182130455, "cost": 0.49275, "time_s": 93.334, "is_outlier": false}, {"exp": 37, "vision": "Haiku 3", "embedding": "Cohere EN", "score": 0.562, "dist": 1.2566258036877274, "cost": 0.49275, "time_s": 91.532, "is_outlier": false}, {"exp": 38, "vision": "Haiku 3", "embedding": "Cohere Multi", "score": 0.498, "dist": 1.0809756752553805, "cost": 0.49275, "time_s": 96.517, "is_outlier": false}, {"exp": 39, "vision": "Nova Pro", "embedding": "Titan v2", "score": 0.492, "dist": 0.33388715566198235, "cost": 1.3779, "time_s": 97.516, "is_outlier": false}, {"exp": 40, "vision": "Nova Pro", "embedding": "Titan v1", "score": 0.56, "dist": 0.6844442753426918, "cost": 1.3769999999999998, "time_s": 83.748, "is_outlier": false}, {"exp": 41, "vision": "Nova Pro", "embedding": "Cohere EN", "score": 0.565, "dist": 1.0286412663986755, "cost": 1.3769999999999998, "time_s": 141.574, "is_outlier": false}, {"exp": 42, "vision": "Nova Pro", "embedding": "Cohere Multi", "score": 0.532, "dist": 1.157042479506572, "cost": 1.3769999999999998, "time_s": 84.147, "is_outlier": false}, {"exp": 43, "vision": "Nova Lite", "embedding": "Titan v2", "score": 0.485, "dist": 0.5604636666233939, "cost": 0.1125, "time_s": 84.809, "is_outlier": false}, {"exp": 44, "vision": "Nova Lite", "embedding": "Titan v1", "score": 0.553, "dist": 0.8561818144428883, "cost": 0.11159999999999999, "time_s": 79.379, "is_outlier": false}, {"exp": 45, "vision": "Nova Lite", "embedding": "Cohere EN", "score": 0.51, "dist": 0.7156213845668554, "cost": 0.11159999999999999, "time_s": 76.215, "is_outlier": false}, {"exp": 46, "vision": "Nova Lite", "embedding": "Cohere Multi", "score": 0.503, "dist": 0.5144172209019584, "cost": 0.11159999999999999, "time_s": 74.238, "is_outlier": false}, {"exp": 47, "vision": "Nova 2 Lite", "embedding": "Titan v2", "score": 0.514, "dist": 0.37789265001885275, "cost": 0.0783, "time_s": 163.814, "is_outlier": false}, {"exp": 48, "vision": "Nova 2 Lite", "embedding": "Titan v1", "score": 0.571, "dist": 0.7827569293809078, "cost": 0.07739999999999998, "time_s": 118.834, "is_outlier": false}, {"exp": 49, "vision": "Nova 2 Lite", "embedding": "Cohere EN", "score": 0.609, "dist": 1.3282915382150966, "cost": 0.07739999999999998, "time_s": 85.777, "is_outlier": true}, {"exp": 50, "vision": "Nova 2 Lite", "embedding": "Cohere Multi", "score": 0.578, "dist": 0.9323968929856975, "cost": 0.07739999999999998, "time_s": 81.809, "is_outlier": false}], "consensus_cost": [{"exp": 48, "vision": "Nova 2 Lite", "embedding": "Titan v1", "score": 0.571, "dist": 0.7827569293809078, "cost": 0.07739999999999998, "time_s": 118.834, "value_score": 0.56485340367706}, {"exp": 50, "vision": "Nova 2 Lite", "embedding": "Cohere Multi", "score": 0.578, "dist": 0.9323968929856975, "cost": 0.07739999999999998, "time_s": 81.809, "value_score": 0.7022655114711502}, {"exp": 47, "vision": "Nova 2 Lite", "embedding": "Titan v2", "score": 0.514, "dist": 0.37789265001885275, "cost": 0.0783, "time_s": 163.814, "value_score": 0.19316635656319928}, {"exp": 44, "vision": "Nova Lite", "embedding": "Titan v1", "score": 0.553, "dist": 0.8561818144428883, "cost": 0.11159999999999999, "time_s": 79.379, "value_score": 0.6358380803775096}, {"exp": 45, "vision": "Nova Lite", "embedding": "Cohere EN", "score": 0.51, "dist": 0.7156213845668554, "cost": 0.11159999999999999, "time_s": 76.215, "value_score": 0.5067635706247495}, {"exp": 46, "vision": "Nova Lite", "embedding": "Cohere Multi", "score": 0.503, "dist": 0.5144172209019584, "cost": 0.11159999999999999, "time_s": 74.238, "value_score": 0.32200084040142024}, {"exp": 43, "vision": "Nova Lite", "embedding": "Titan v2", "score": 0.485, "dist": 0.5604636666233939, "cost": 0.1125, "time_s": 84.809, "value_score": 0.3643782695682842}, {"exp": 36, "vision": "Haiku 3", "embedding": "Titan v1", "score": 0.554, "dist": 0.5736119182130455, "cost": 0.49275, "time_s": 93.334, "value_score": 0.4160305638110946}, {"exp": 37, "vision": "Haiku 3", "embedding": "Cohere EN", "score": 0.562, "dist": 1.2566258036877274, "cost": 0.49275, "time_s": 91.532, "value_score": 1.043231850117096}, {"exp": 38, "vision": "Haiku 3", "embedding": "Cohere Multi", "score": 0.498, "dist": 1.0809756752553805, "cost": 0.49275, "time_s": 96.517, "value_score": 0.8819350026657187}, {"exp": 35, "vision": "Haiku 3", "embedding": "Titan v2", "score": 0.508, "dist": 0.690114780666105, "cost": 0.49365000000000003, "time_s": 97.408, "value_score": 0.5231070512875489}, {"exp": 40, "vision": "Nova Pro", "embedding": "Titan v1", "score": 0.56, "dist": 0.6844442753426918, "cost": 1.3769999999999998, "time_s": 83.748, "value_score": 0.6098437062098981}, {"exp": 41, "vision": "Nova Pro", "embedding": "Cohere EN", "score": 0.565, "dist": 1.0286412663986755, "cost": 1.3769999999999998, "time_s": 141.574, "value_score": 0.9259145799124658}, {"exp": 42, "vision": "Nova Pro", "embedding": "Cohere Multi", "score": 0.532, "dist": 1.157042479506572, "cost": 1.3769999999999998, "time_s": 84.147, "value_score": 1.043823465422977}, {"exp": 39, "vision": "Nova Pro", "embedding": "Titan v2", "score": 0.492, "dist": 0.33388715566198235, "cost": 1.3779, "time_s": 97.516, "value_score": 0.28802609972108895}, {"exp": 32, "vision": "Haiku 4.5", "embedding": "Titan v1", "score": 0.52, "dist": 0.5404294274457884, "cost": 1.944, "time_s": 132.095, "value_score": 0.5366134502519371}, {"exp": 33, "vision": "Haiku 4.5", "embedding": "Cohere EN", "score": 0.424, "dist": 0.9584869844618219, "cost": 1.944, "time_s": 102.389, "value_score": 0.9205093608426453}, {"exp": 34, "vision": "Haiku 4.5", "embedding": "Cohere Multi", "score": 0.423, "dist": 0.806930101230339, "cost": 1.944, "time_s": 97.888, "value_score": 0.7813369748445892}, {"exp": 31, "vision": "Haiku 4.5", "embedding": "Titan v2", "score": 0.432, "dist": 0.6044442529615709, "cost": 1.9449, "time_s": 139.069, "value_score": 0.5954909699140578}, {"exp": 20, "vision": "Sonnet 4.5", "embedding": "Titan v1", "score": 0.502, "dist": 0.41250261877208444, "cost": 5.814, "time_s": 175.862, "value_score": 0.8219505075839134}, {"exp": 21, "vision": "Sonnet 4.5", "embedding": "Cohere EN", "score": 0.459, "dist": 0.8603149096854952, "cost": 5.814, "time_s": 195.382, "value_score": 1.2331697387849456}, {"exp": 22, "vision": "Sonnet 4.5", "embedding": "Cohere Multi", "score": 0.47, "dist": 0.5762932986330681, "cost": 5.814, "time_s": 115.776, "value_score": 0.972357003379161}, {"exp": 24, "vision": "Sonnet 3.7", "embedding": "Titan v1", "score": 0.54, "dist": 0.5517623979822842, "cost": 5.814, "time_s": 619.876, "value_score": 0.9498306495675931}, {"exp": 25, "vision": "Sonnet 3.7", "embedding": "Cohere EN", "score": 0.436, "dist": 0.9421533075557674, "cost": 5.814, "time_s": 171.166, "value_score": 1.3083206976527646}, {"exp": 26, "vision": "Sonnet 3.7", "embedding": "Cohere Multi", "score": 0.427, "dist": 1.0336303709872114, "cost": 5.814, "time_s": 101.075, "value_score": 1.3923226968388034}, {"exp": 28, "vision": "Sonnet 3", "embedding": "Titan v1", "score": 0.535, "dist": 0.4934488259456708, "cost": 5.814, "time_s": 302.887, "value_score": 0.8962821812739461}, {"exp": 19, "vision": "Sonnet 4.5", "embedding": "Titan v2", "score": 0.453, "dist": 0.5732146867976208, "cost": 5.8149, "time_s": 123.497, "value_score": 0.9696236376635461}, {"exp": 23, "vision": "Sonnet 3.7", "embedding": "Titan v2", "score": 0.47, "dist": 0.48945839619413894, "cost": 5.8149, "time_s": 622.292, "value_score": 0.892711507002814}, {"exp": 27, "vision": "Sonnet 3", "embedding": "Titan v2", "score": 0.38, "dist": 1.2004339814530245, "cost": 5.8149, "time_s": 317.505, "value_score": 1.5455895979022776}, {"exp": 16, "vision": "Opus 4.5", "embedding": "Titan v1", "score": 0.465, "dist": 0.4554455321068041, "cost": 9.684000000000001, "time_s": 157.145, "value_score": 1.2641946376907738}, {"exp": 17, "vision": "Opus 4.5", "embedding": "Cohere EN", "score": 0.503, "dist": 0.5556453399671064, "cost": 9.684000000000001, "time_s": 136.92, "value_score": 1.356206600718318}, {"exp": 18, "vision": "Opus 4.5", "embedding": "Cohere Multi", "score": 0.521, "dist": 0.617641184439678, "cost": 9.684000000000001, "time_s": 132.248, "value_score": 1.4131364439114766}, {"exp": 15, "vision": "Opus 4.5", "embedding": "Titan v2", "score": 0.499, "dist": 0.16763906149305274, "cost": 9.6849, "time_s": 166.444, "value_score": 1.0}], "outlier_profiles": {"29": {"vision": "Sonnet 3", "embedding": "Cohere EN", "values": [2.01, 2.21, 2.14, 2.4, 2.85]}, "30": {"vision": "Sonnet 3", "embedding": "Cohere Multi", "values": [1.97, 2.85, 1.96, 2.1, 2.8]}, "49": {"vision": "Nova 2 Lite", "embedding": "Cohere EN", "values": [3.35, 3.4, 3.91, 3.56, 2.95]}}, "score_matrix": [[0.499, 0.465, 0.503, 0.521], [0.453, 0.502, 0.459, 0.47], [0.47, 0.54, 0.436, 0.427], [0.38, 0.535, 0.331, 0.334], [0.432, 0.52, 0.424, 0.423], [0.508, 0.554, 0.562, 0.498], [0.492, 0.56, 0.565, 0.532], [0.485, 0.553, 0.51, 0.503], [0.514, 0.571, 0.609, 0.578]], "q_matrices": {"want_to_know_more": [[2.97, 2.65, 3.01, 3.02], [2.51, 2.64, 2.87, 2.74], [3.07, 3.29, 2.83, 2.56], [2.53, 3.23, 2.01, 1.97], [2.67, 3.37, 2.41, 2.27], [2.98, 3.17, 3.18, 2.63], [2.82, 3.29, 2.96, 2.61], [3.11, 3.42, 3.35, 2.99], [2.97, 3.33, 3.35, 3.22]], "memorability": [[3.03, 2.9, 2.59, 3.55], [2.68, 3.01, 2.19, 3.0], [2.63, 2.95, 2.29, 3.0], [2.62, 2.93, 2.21, 2.85], [2.75, 2.97, 2.35, 2.98], [3.6, 3.14, 3.3, 3.93], [3.29, 3.17, 3.93, 4.11], [2.59, 2.79, 2.63, 2.89], [3.26, 3.19, 3.4, 3.66]], "research_intent": [[2.89, 2.54, 3.04, 2.61], [2.62, 2.81, 2.7, 2.29], [2.59, 3.02, 2.24, 1.85], [2.5, 2.99, 2.14, 1.96], [2.64, 2.92, 3.04, 2.59], [2.89, 3.02, 3.96, 2.94], [2.73, 3.1, 3.23, 2.97], [2.64, 2.89, 2.65, 2.55], [2.85, 3.18, 3.91, 3.2]], "personal_fit": [[3.2, 3.0, 3.4, 3.34], [3.35, 3.46, 3.4, 3.39], [3.05, 3.28, 3.15, 2.98], [2.14, 3.39, 2.4, 2.1], [2.7, 3.01, 2.72, 2.69], [2.86, 3.45, 3.02, 2.82], [3.16, 3.59, 3.27, 3.06], [3.41, 3.75, 3.52, 3.58], [3.37, 3.64, 3.56, 3.57]], "concept_preference": [[2.88, 3.2, 3.02, 2.91], [2.89, 3.12, 3.01, 2.97], [3.07, 3.26, 3.22, 3.16], [2.81, 3.16, 2.85, 2.8], [2.87, 3.13, 2.96, 2.93], [2.84, 3.3, 2.79, 2.64], [2.83, 3.06, 2.9, 2.88], [2.94, 3.2, 3.05, 3.04], [2.82, 3.08, 2.95, 2.9]]}, "fa": {"vision_between_std": 0.052393045817169276, "embedding_between_std": 0.02850203949095631, "vision_within_avg_std": 0.041510638014435275, "embedding_within_avg_std": 0.05867134430923188, "vision_group_means": {"Opus 4.5": 0.497, "Sonnet 4.5": 0.471, "Sonnet 3.7": 0.46825, "Sonnet 3": 0.395, "Haiku 4.5": 0.44975, "Haiku 3": 0.5305, "Nova Pro": 0.53725, "Nova Lite": 0.51275, "Nova 2 Lite": 0.568}, "vision_group_stds": {"Opus 4.5": 0.02338090388900024, "Sonnet 4.5": 0.021832697191750412, "Sonnet 3.7": 0.051292462084273835, "Sonnet 3": 0.09598958276813167, "Haiku 4.5": 0.047006205264128, "Haiku 3": 0.03218177538089949, "Nova Pro": 0.03348009358808106, "Nova Lite": 0.028825625173908513, "Nova 2 Lite": 0.03960639678974427}, "emb_group_means": {"Titan v2": 0.4703333333333333, "Titan v1": 0.5333333333333333, "Cohere EN": 0.48877777777777776, "Cohere Multi": 0.4762222222222222}, "emb_group_stds": {"Titan v2": 0.0429563732174866, "Titan v1": 0.03320391543176798, "Cohere EN": 0.08590660303169043, "Cohere Multi": 0.07261848555598253}}, "pqf": {"want_to_know_more": {"vision_between_std": 0.25477659058695157, "embedding_between_std": 0.2009237924447237, "ratio": 1.2680259887939522}, "memorability": {"vision_between_std": 0.3850466692493262, "embedding_between_std": 0.23609999973854992, "ratio": 1.6308626415743979}, "research_intent": {"vision_between_std": 0.31535143535074933, "embedding_between_std": 0.20562136083812363, "ratio": 1.533651144342981}, "personal_fit": {"vision_between_std": 0.3476995330422198, "embedding_between_std": 0.16734307187243716, "ratio": 2.0777647329628643}, "concept_preference": {"vision_between_std": 0.0899285982197976, "embedding_between_std": 0.12765050021743482, "ratio": 0.7044907624068592}}, "vision_pw": [[0.0, 0.735950200137868, 0.8685832041880709, 1.3419332876312655, 0.8873186274400814, 1.0192243615238226, 0.9136191020490853, 0.7526309230286063, 0.9447194425717882], [0.735950200137868, 0.0, 0.8388932536714618, 1.3284978318486105, 0.9400457950111206, 1.3010554753395212, 1.1742707670676635, 0.7341617060034831, 1.2041873502824711], [0.8685832041880709, 0.8388932536714618, 0.0, 1.2818274817597155, 0.9725890100962659, 1.3755676873882994, 1.316060073024259, 0.8407630434190076, 1.3473494931867296], [1.3419332876312655, 1.3284978318486105, 1.2818274817597155, 0.0, 1.1173276842966064, 1.6937909073519402, 1.7000068724781952, 1.5211166051189275, 1.854651017319303], [0.8873186274400814, 0.9400457950111206, 0.9725890100962659, 1.1173276842966064, 0.0, 1.2402350671438875, 1.2563740792995057, 1.1110998968954786, 1.3616626023319667], [1.0192243615238226, 1.3010554753395212, 1.3755676873882994, 1.6937909073519402, 1.2402350671438875, 0.0, 0.8752212811000923, 1.2667772060592262, 0.9505077103856406], [0.9136191020490853, 1.1742707670676635, 1.316060073024259, 1.7000068724781952, 1.2563740792995057, 0.8752212811000923, 0.0, 1.152745784536819, 0.8307645467946779], [0.7526309230286063, 0.7341617060034831, 0.8407630434190076, 1.5211166051189275, 1.1110998968954786, 1.2667772060592262, 1.152745784536819, 0.0, 1.0074495045874317], [0.9447194425717882, 1.2041873502824711, 1.3473494931867296, 1.854651017319303, 1.3616626023319667, 0.9505077103856406, 0.8307645467946779, 1.0074495045874317, 0.0]], "vision_ranges": {"Opus 4.5": {"min": 0.465, "max": 0.521, "mean": 0.497}, "Sonnet 4.5": {"min": 0.453, "max": 0.502, "mean": 0.471}, "Sonnet 3.7": {"min": 0.427, "max": 0.54, "mean": 0.46825}, "Sonnet 3": {"min": 0.331, "max": 0.535, "mean": 0.395}, "Haiku 4.5": {"min": 0.423, "max": 0.52, "mean": 0.44975}, "Haiku 3": {"min": 0.498, "max": 0.562, "mean": 0.5305}, "Nova Pro": {"min": 0.492, "max": 0.565, "mean": 0.53725}, "Nova Lite": {"min": 0.485, "max": 0.553, "mean": 0.51275}, "Nova 2 Lite": {"min": 0.514, "max": 0.609, "mean": 0.568}}, "vision_cost_dist": {"Opus 4.5": {"avg_cost": 9.684225000000001, "avg_dist": 0.4490927795016603}, "Sonnet 4.5": {"avg_cost": 5.814225, "avg_dist": 0.6055813784720672}, "Sonnet 3.7": {"avg_cost": 5.814225, "avg_dist": 0.7542511181798505}, "Sonnet 3": {"avg_cost": 5.814225, "avg_dist": 1.2270361168944608}, "Haiku 4.5": {"avg_cost": 1.9442249999999999, "avg_dist": 0.72757269152488}, "Haiku 3": {"avg_cost": 0.49297500000000005, "avg_dist": 0.9003320444555646}, "Nova Pro": {"avg_cost": 1.3772249999999997, "avg_dist": 0.8010037942274804}, "Nova Lite": {"avg_cost": 0.111825, "avg_dist": 0.661671021633774}, "Nova 2 Lite": {"avg_cost": 0.07762499999999999, "avg_dist": 0.8553345026501387}}, "top_similar": [{"exp_a": 40, "exp_b": 48, "vision_a": "Nova Pro", "vision_b": "Nova 2 Lite", "emb_a": "Titan v1", "emb_b": "Titan v1", "distance": 0.10630145812734669, "cost_a": 1.3769999999999998, "cost_b": 0.07739999999999998}, {"exp_a": 24, "exp_b": 28, "vision_a": "Sonnet 3.7", "vision_b": "Sonnet 3", "emb_a": "Titan v1", "emb_b": "Titan v1", "distance": 0.1643167672515498, "cost_a": 5.814, "cost_b": 5.814}, {"exp_a": 28, "exp_b": 36, "vision_a": "Sonnet 3", "vision_b": "Haiku 3", "emb_a": "Titan v1", "emb_b": "Titan v1", "distance": 0.26795522013948503, "cost_a": 5.814, "cost_b": 0.49275}, {"exp_a": 24, "exp_b": 36, "vision_a": "Sonnet 3.7", "vision_b": "Haiku 3", "emb_a": "Titan v1", "emb_b": "Titan v1", "distance": 0.2846049894151544, "cost_a": 5.814, "cost_b": 0.49275}, {"exp_a": 39, "exp_b": 47, "vision_a": "Nova Pro", "vision_b": "Nova 2 Lite", "emb_a": "Titan v2", "emb_b": "Titan v2", "distance": 0.2863564212655273, "cost_a": 1.3779, "cost_b": 0.0783}, {"exp_a": 43, "exp_b": 45, "vision_a": "Nova Lite", "vision_b": "Nova Lite", "emb_a": "Titan v2", "emb_b": "Cohere EN", "distance": 0.2889636655359979, "cost_a": 0.1125, "cost_b": 0.11159999999999999}, {"exp_a": 15, "exp_b": 47, "vision_a": "Opus 4.5", "vision_b": "Nova 2 Lite", "emb_a": "Titan v2", "emb_b": "Titan v2", "distance": 0.29495762407505244, "cost_a": 9.6849, "cost_b": 0.0783}, {"exp_a": 36, "exp_b": 40, "vision_a": "Haiku 3", "vision_b": "Nova Pro", "emb_a": "Titan v1", "emb_b": "Titan v1", "distance": 0.3144837038703275, "cost_a": 0.49275, "cost_b": 1.3769999999999998}, {"exp_a": 24, "exp_b": 32, "vision_a": "Sonnet 3.7", "vision_b": "Haiku 4.5", "emb_a": "Titan v1", "emb_b": "Titan v1", "distance": 0.32649655434629016, "cost_a": 5.814, "cost_b": 1.944}, {"exp_a": 15, "exp_b": 39, "vision_a": "Opus 4.5", "vision_b": "Nova Pro", "emb_a": "Titan v2", "emb_b": "Titan v2", "distance": 0.34612136599753596, "cost_a": 9.6849, "cost_b": 1.3779}], "top_dissimilar": [{"exp_a": 29, "exp_b": 50, "vision_a": "Sonnet 3", "vision_b": "Nova 2 Lite", "emb_a": "Cohere EN", "emb_b": "Cohere Multi", "distance": 2.462031681355868}, {"exp_a": 29, "exp_b": 37, "vision_a": "Sonnet 3", "vision_b": "Haiku 3", "emb_a": "Cohere EN", "emb_b": "Cohere EN", "distance": 2.501479562179152}, {"exp_a": 30, "exp_b": 37, "vision_a": "Sonnet 3", "vision_b": "Haiku 3", "emb_a": "Cohere Multi", "emb_b": "Cohere EN", "distance": 2.55207758502754}, {"exp_a": 29, "exp_b": 49, "vision_a": "Sonnet 3", "vision_b": "Nova 2 Lite", "emb_a": "Cohere EN", "emb_b": "Cohere EN", "distance": 2.774923422366823}, {"exp_a": 30, "exp_b": 49, "vision_a": "Sonnet 3", "vision_b": "Nova 2 Lite", "emb_a": "Cohere Multi", "emb_b": "Cohere EN", "distance": 2.857183928276232}], "times": {"Opus 4.5": {"mean_s": 148.18925, "min_s": 132.248, "max_s": 166.444}, "Sonnet 4.5": {"mean_s": 152.62925, "min_s": 115.776, "max_s": 195.382}, "Sonnet 3.7": {"mean_s": 378.60225, "min_s": 101.075, "max_s": 622.292}, "Sonnet 3": {"mean_s": 298.41575, "min_s": 283.108, "max_s": 317.505}, "Haiku 4.5": {"mean_s": 117.86025, "min_s": 97.888, "max_s": 139.069}, "Haiku 3": {"mean_s": 94.69775, "min_s": 91.532, "max_s": 97.408}, "Nova Pro": {"mean_s": 101.74625, "min_s": 83.748, "max_s": 141.574}, "Nova Lite": {"mean_s": 78.66025, "min_s": 74.238, "max_s": 84.809}, "Nova 2 Lite": {"mean_s": 112.5585, "min_s": 81.809, "max_s": 163.814}}, "dev_results": [{"exp": 29, "vision": "Sonnet 3", "embedding": "Cohere EN", "score": 0.331, "deviation": -0.17149999999999993, "z_score": -2.6486187538728756, "abs_z": 2.6486187538728756, "cost": 5.814, "time_s": 290.163}, {"exp": 30, "vision": "Sonnet 3", "embedding": "Cohere Multi", "score": 0.334, "deviation": -0.16849999999999993, "z_score": -2.6022872304815134, "abs_z": 2.6022872304815134, "cost": 5.814, "time_s": 283.108}, {"exp": 27, "vision": "Sonnet 3", "embedding": "Titan v2", "score": 0.38, "deviation": -0.12249999999999994, "z_score": -1.8918705384806254, "abs_z": 1.8918705384806254, "cost": 5.8149, "time_s": 317.505}, {"exp": 49, "vision": "Nova 2 Lite", "embedding": "Cohere EN", "score": 0.609, "deviation": 0.10650000000000004, "z_score": 1.6447690803933614, "abs_z": 1.6447690803933614, "cost": 0.07739999999999998, "time_s": 85.777}, {"exp": 34, "vision": "Haiku 4.5", "embedding": "Cohere Multi", "score": 0.423, "deviation": -0.07949999999999996, "z_score": -1.2277853698710997, "abs_z": 1.2277853698710997, "cost": 1.944, "time_s": 97.888}, {"exp": 33, "vision": "Haiku 4.5", "embedding": "Cohere EN", "score": 0.424, "deviation": -0.07849999999999996, "z_score": -1.2123415287406456, "abs_z": 1.2123415287406456, "cost": 1.944, "time_s": 102.389}, {"exp": 50, "vision": "Nova 2 Lite", "embedding": "Cohere Multi", "score": 0.578, "deviation": 0.07550000000000001, "z_score": 1.1660100053492841, "abs_z": 1.1660100053492841, "cost": 0.07739999999999998, "time_s": 81.809}, {"exp": 26, "vision": "Sonnet 3.7", "embedding": "Cohere Multi", "score": 0.427, "deviation": -0.07549999999999996, "z_score": -1.1660100053492832, "abs_z": 1.1660100053492832, "cost": 5.814, "time_s": 101.075}, {"exp": 31, "vision": "Haiku 4.5", "embedding": "Titan v2", "score": 0.432, "deviation": -0.07049999999999995, "z_score": -1.0887907996970128, "abs_z": 1.0887907996970128, "cost": 1.9449, "time_s": 139.069}, {"exp": 48, "vision": "Nova 2 Lite", "embedding": "Titan v1", "score": 0.571, "deviation": 0.0685, "z_score": 1.0579031174361053, "abs_z": 1.0579031174361053, "cost": 0.07739999999999998, "time_s": 118.834}, {"exp": 25, "vision": "Sonnet 3.7", "embedding": "Cohere EN", "score": 0.436, "deviation": -0.06649999999999995, "z_score": -1.0270154351751963, "abs_z": 1.0270154351751963, "cost": 5.814, "time_s": 171.166}, {"exp": 41, "vision": "Nova Pro", "embedding": "Cohere EN", "score": 0.565, "deviation": 0.0625, "z_score": 0.9652400706533808, "abs_z": 0.9652400706533808, "cost": 1.3769999999999998, "time_s": 141.574}, {"exp": 37, "vision": "Haiku 3", "embedding": "Cohere EN", "score": 0.562, "deviation": 0.05950000000000011, "z_score": 0.9189085472620202, "abs_z": 0.9189085472620202, "cost": 0.49275, "time_s": 91.532}, {"exp": 40, "vision": "Nova Pro", "embedding": "Titan v1", "score": 0.56, "deviation": 0.05750000000000011, "z_score": 0.888020865001112, "abs_z": 0.888020865001112, "cost": 1.3769999999999998, "time_s": 83.748}, {"exp": 36, "vision": "Haiku 3", "embedding": "Titan v1", "score": 0.554, "deviation": 0.0515000000000001, "z_score": 0.7953578182183874, "abs_z": 0.7953578182183874, "cost": 0.49275, "time_s": 93.334}, {"exp": 44, "vision": "Nova Lite", "embedding": "Titan v1", "score": 0.553, "deviation": 0.0505000000000001, "z_score": 0.7799139770879332, "abs_z": 0.7799139770879332, "cost": 0.11159999999999999, "time_s": 79.379}, {"exp": 19, "vision": "Sonnet 4.5", "embedding": "Titan v2", "score": 0.453, "deviation": -0.04949999999999993, "z_score": -0.7644701359574766, "abs_z": 0.7644701359574766, "cost": 5.8149, "time_s": 123.497}, {"exp": 21, "vision": "Sonnet 4.5", "embedding": "Cohere EN", "score": 0.459, "deviation": -0.04349999999999993, "z_score": -0.671807089174752, "abs_z": 0.671807089174752, "cost": 5.814, "time_s": 195.382}, {"exp": 24, "vision": "Sonnet 3.7", "embedding": "Titan v1", "score": 0.54, "deviation": 0.03750000000000009, "z_score": 0.5791440423920299, "abs_z": 0.5791440423920299, "cost": 5.814, "time_s": 619.876}, {"exp": 16, "vision": "Opus 4.5", "embedding": "Titan v1", "score": 0.465, "deviation": -0.03749999999999992, "z_score": -0.5791440423920273, "abs_z": 0.5791440423920273, "cost": 9.684000000000001, "time_s": 157.145}, {"exp": 28, "vision": "Sonnet 3", "embedding": "Titan v1", "score": 0.535, "deviation": 0.032500000000000084, "z_score": 0.5019248367397593, "abs_z": 0.5019248367397593, "cost": 5.814, "time_s": 302.887}, {"exp": 22, "vision": "Sonnet 4.5", "embedding": "Cohere Multi", "score": 0.47, "deviation": -0.03249999999999997, "z_score": -0.5019248367397576, "abs_z": 0.5019248367397576, "cost": 5.814, "time_s": 115.776}, {"exp": 23, "vision": "Sonnet 3.7", "embedding": "Titan v2", "score": 0.47, "deviation": -0.03249999999999997, "z_score": -0.5019248367397576, "abs_z": 0.5019248367397576, "cost": 5.8149, "time_s": 622.292}, {"exp": 42, "vision": "Nova Pro", "embedding": "Cohere Multi", "score": 0.532, "deviation": 0.02950000000000008, "z_score": 0.455593313348397, "abs_z": 0.455593313348397, "cost": 1.3769999999999998, "time_s": 84.147}, {"exp": 18, "vision": "Opus 4.5", "embedding": "Cohere Multi", "score": 0.521, "deviation": 0.018500000000000072, "z_score": 0.2857110609134018, "abs_z": 0.2857110609134018, "cost": 9.684000000000001, "time_s": 132.248}, {"exp": 32, "vision": "Haiku 4.5", "embedding": "Titan v1", "score": 0.52, "deviation": 0.01750000000000007, "z_score": 0.2702672197829477, "abs_z": 0.2702672197829477, "cost": 1.944, "time_s": 132.095}, {"exp": 43, "vision": "Nova Lite", "embedding": "Titan v2", "score": 0.485, "deviation": -0.01749999999999996, "z_score": -0.270267219782946, "abs_z": 0.270267219782946, "cost": 0.1125, "time_s": 84.809}, {"exp": 47, "vision": "Nova 2 Lite", "embedding": "Titan v2", "score": 0.514, "deviation": 0.011500000000000066, "z_score": 0.17760417300022308, "abs_z": 0.17760417300022308, "cost": 0.0783, "time_s": 163.814}, {"exp": 39, "vision": "Nova Pro", "embedding": "Titan v2", "score": 0.492, "deviation": -0.010499999999999954, "z_score": -0.16216033186976725, "abs_z": 0.16216033186976725, "cost": 1.3779, "time_s": 97.516}, {"exp": 45, "vision": "Nova Lite", "embedding": "Cohere EN", "score": 0.51, "deviation": 0.007500000000000062, "z_score": 0.11582880847840665, "abs_z": 0.11582880847840665, "cost": 0.11159999999999999, "time_s": 76.215}, {"exp": 35, "vision": "Haiku 3", "embedding": "Titan v2", "score": 0.508, "deviation": 0.00550000000000006, "z_score": 0.08494112621749844, "abs_z": 0.08494112621749844, "cost": 0.49365000000000003, "time_s": 97.408}, {"exp": 38, "vision": "Haiku 3", "embedding": "Cohere Multi", "score": 0.498, "deviation": -0.0044999999999999485, "z_score": -0.06949728508704262, "abs_z": 0.06949728508704262, "cost": 0.49275, "time_s": 96.517}, {"exp": 15, "vision": "Opus 4.5", "embedding": "Titan v2", "score": 0.499, "deviation": -0.0034999999999999476, "z_score": -0.054053443956588516, "abs_z": 0.054053443956588516, "cost": 9.6849, "time_s": 166.444}, {"exp": 17, "vision": "Opus 4.5", "embedding": "Cohere EN", "score": 0.503, "deviation": 0.000500000000000056, "z_score": 0.007721920565227911, "abs_z": 0.007721920565227911, "cost": 9.684000000000001, "time_s": 136.92}, {"exp": 46, "vision": "Nova Lite", "embedding": "Cohere Multi", "score": 0.503, "deviation": 0.000500000000000056, "z_score": 0.007721920565227911, "abs_z": 0.007721920565227911, "cost": 0.11159999999999999, "time_s": 74.238}, {"exp": 20, "vision": "Sonnet 4.5", "embedding": "Titan v1", "score": 0.502, "deviation": -0.0004999999999999449, "z_score": -0.007721920565226196, "abs_z": 0.007721920565226196, "cost": 5.814, "time_s": 175.862}], "question_ids": ["want_to_know_more", "memorability", "research_intent", "personal_fit", "concept_preference"], "vision_order": ["Opus 4.5", "Sonnet 4.5", "Sonnet 3.7", "Sonnet 3", "Haiku 4.5", "Haiku 3", "Nova Pro", "Nova Lite", "Nova 2 Lite"], "embedding_order": ["Titan v2", "Titan v1", "Cohere EN", "Cohere Multi"]};
+
+// Helpers
+const EMBEDDING_COLORS = ["#3B82F6", "#8B5CF6", "#F59E0B", "#10B981"];
+const C_CONSENSUS = '#10B981';
+const C_OUTLIER = '#EF4444';
+const C_PRIMARY = '#3B82F6';
+const C_YELLOW = '#F59E0B';
+
+// ---- Chart 1a: Grouped Bar ----
+(function() {
+  const ctx = document.getElementById('chart-grouped-bar');
+  if (!ctx) return;
+
+  const visionOrder = DATA.vision_order;
+  const embOrder = DATA.embedding_order;
+  const scoreMatrix = DATA.score_matrix;
+
+  // Build one dataset per embedding model, each with 9 values (one per vision model)
+  const datasets = embOrder.map((emb, ei) => {
+    const values = visionOrder.map((v, vi) => {
+      const val = scoreMatrix[vi] ? scoreMatrix[vi][ei] : null;
+      return val;
+    });
+    // Find experiment numbers for tooltips
+    const expNums = visionOrder.map((v, vi) => 15 + vi * 4 + ei);
+    return {
+      label: emb,
+      data: values,
+      backgroundColor: EMBEDDING_COLORS[ei] + 'CC',
+      borderColor: EMBEDDING_COLORS[ei],
+      borderWidth: 1,
+      expNums: expNums,
+    };
+  });
+
+  // Compute y-axis min to make differences visible
+  const allVals = datasets.flatMap(d => d.data.filter(v => v !== null));
+  const yMin = Math.floor((Math.min(...allVals) - 0.005) * 1000) / 1000;
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: { labels: visionOrder, datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      scales: {
+        y: {
+          min: yMin,
+          title: { display: true, text: 'Composite Score' },
+        },
+        x: {
+          title: { display: true, text: 'Vision Model' },
+        },
+      },
+      plugins: {
+        tooltip: {
+          callbacks: {
+            label: (tipCtx) => {
+              const ds = tipCtx.dataset;
+              const i = tipCtx.dataIndex;
+              const expNum = ds.expNums ? ds.expNums[i] : '?';
+              return `${ds.label} (Exp ${expNum}): ${tipCtx.parsed.y !== null ? tipCtx.parsed.y.toFixed(4) : '-'}`;
+            }
+          }
+        },
+        annotation: {
+          annotations: {
+            medianLine: {
+              type: 'line', yMin: DATA.median, yMax: DATA.median,
+              borderColor: '#6B7280', borderWidth: 2, borderDash: [6, 4],
+              label: { display: true, content: `Median: ${DATA.median.toFixed(4)}`, position: 'start' }
+            }
+          }
+        },
+        legend: { position: 'bottom' },
+      }
+    }
+  });
+})();
+
+// ---- Chart 2a: Centroid Distance Bar ----
+(function() {
+  const ctx = document.getElementById('chart-centroid-bar');
+  if (!ctx) return;
+
+  const sorted = [...DATA.all_exps].sort((a, b) => b.dist - a.dist);
+  const labels = sorted.map(e => `${e.exp} ${e.vision}`);
+  const values = sorted.map(e => e.dist);
+  const colors = sorted.map(e => e.is_outlier ? C_OUTLIER : C_CONSENSUS);
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{ data: values, backgroundColor: colors, borderWidth: 0 }],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+      plugins: {
+        legend: { display: false },
+        annotation: {
+          annotations: {
+            threshold: {
+              type: 'line', xMin: DATA.threshold, xMax: DATA.threshold,
+              borderColor: C_OUTLIER, borderWidth: 2, borderDash: [6, 4],
+              label: { display: true, content: `Threshold: ${DATA.threshold.toFixed(3)}`, position: 'end' }
+            }
+          }
+        },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => {
+              const e = sorted[ctx.dataIndex];
+              return `${e.vision} + ${e.embedding}: dist=${e.dist.toFixed(3)}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: { title: { display: true, text: 'Distance from Centroid' } },
+      }
+    }
+  });
+})();
+
+// ---- Chart 2b: Radar Outliers ----
+(function() {
+  const ctx = document.getElementById('chart-radar-outliers');
+  if (!ctx) return;
+
+  const labels = DATA.question_ids.map(q => q.replace(/_/g, ' '));
+
+  // Centroid dataset
+  const datasets = [{
+    label: 'Consensus Centroid',
+    data: DATA.centroid,
+    backgroundColor: 'rgba(107,114,128,0.2)',
+    borderColor: '#6B7280',
+    borderWidth: 2,
+    pointRadius: 4,
+  }];
+
+  // Outlier profiles
+  const outlierKeys = Object.keys(DATA.outlier_profiles);
+  outlierKeys.forEach((expStr, i) => {
+    const info = DATA.outlier_profiles[expStr];
+    datasets.push({
+      label: `Exp ${expStr} (${info.vision})`,
+      data: info.values,
+      backgroundColor: 'transparent',
+      borderColor: i === 0 ? C_OUTLIER : (i === 1 ? '#F97316' : '#DC2626'),
+      borderWidth: 2,
+      borderDash: [4, 4],
+      pointRadius: 4,
+    });
+  });
+
+  new Chart(ctx, {
+    type: 'radar',
+    data: { labels, datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      scales: { r: { beginAtZero: false } },
+      plugins: { legend: { position: 'bottom' } },
+    }
+  });
+})();
+
+// ---- Chart 3a: Factor Bars ----
+(function() {
+  const ctx = document.getElementById('chart-factor-bars');
+  if (!ctx) return;
+
+  const fa = DATA.fa;
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Vision Model', 'Embedding Model'],
+      datasets: [
+        {
+          label: 'Between-Group Std Dev',
+          data: [fa.vision_between_std, fa.embedding_between_std],
+          backgroundColor: [C_PRIMARY, C_PRIMARY],
+        },
+        {
+          label: 'Within-Group Avg Std Dev',
+          data: [fa.vision_within_avg_std, fa.embedding_within_avg_std],
+          backgroundColor: ['#93C5FD', '#93C5FD'],
+        },
+      ],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'bottom' } },
+      scales: { y: { title: { display: true, text: 'Standard Deviation' }, beginAtZero: true } },
+    }
+  });
+})();
+
+// ---- Chart 3b: Vision Model Ranges ----
+(function() {
+  const ctx = document.getElementById('chart-vision-ranges');
+  if (!ctx) return;
+
+  const names = DATA.vision_order.filter(n => DATA.vision_ranges[n]);
+  const means = names.map(n => DATA.vision_ranges[n].mean);
+  const mins = names.map(n => DATA.vision_ranges[n].min);
+  const maxs = names.map(n => DATA.vision_ranges[n].max);
+
+  // Color by cost tier
+  const costTiers = names.map(n => {
+    const avgCost = DATA.vision_cost_dist[n] ? DATA.vision_cost_dist[n].avg_cost : 0;
+    if (avgCost < 0.10) return C_CONSENSUS;
+    if (avgCost < 0.50) return C_YELLOW;
+    if (avgCost < 2.00) return '#F97316';
+    return C_OUTLIER;
+  });
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: names,
+      datasets: [{
+        label: 'Score Range (min-max)',
+        data: means,
+        backgroundColor: costTiers.map(c => c + '40'),
+        borderColor: costTiers,
+        borderWidth: 2,
+        errorBars: names.map((n, i) => ({ min: mins[i], max: maxs[i] })),
+      }],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => {
+              const i = ctx.dataIndex;
+              return `${names[i]}: mean=${means[i].toFixed(4)} range=[${mins[i].toFixed(4)}, ${maxs[i].toFixed(4)}]`;
+            }
+          }
+        }
+      },
+      scales: { y: { title: { display: true, text: 'Composite Score' } } },
+    },
+    plugins: [{
+      id: 'errorBars',
+      afterDraw: (chart) => {
+        const { ctx, scales } = chart;
+        const meta = chart.getDatasetMeta(0);
+        meta.data.forEach((bar, i) => {
+          const x = bar.x;
+          const yMin = scales.y.getPixelForValue(mins[i]);
+          const yMax = scales.y.getPixelForValue(maxs[i]);
+          ctx.save();
+          ctx.strokeStyle = costTiers[i];
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(x, yMin); ctx.lineTo(x, yMax);
+          ctx.moveTo(x - 6, yMin); ctx.lineTo(x + 6, yMin);
+          ctx.moveTo(x - 6, yMax); ctx.lineTo(x + 6, yMax);
+          ctx.stroke();
+          ctx.restore();
+        });
+      }
+    }]
+  });
+})();
+
+// ---- Chart 3c: Per-Question Factors ----
+(function() {
+  const ctx = document.getElementById('chart-pq-factors');
+  if (!ctx) return;
+
+  const qIds = DATA.question_ids;
+  const labels = qIds.map(q => q.replace(/_/g, ' '));
+  const vStds = qIds.map(q => DATA.pqf[q] ? DATA.pqf[q].vision_between_std : 0);
+  const eStds = qIds.map(q => DATA.pqf[q] ? DATA.pqf[q].embedding_between_std : 0);
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Vision Effect', data: vStds, backgroundColor: C_PRIMARY },
+        { label: 'Embedding Effect', data: eStds, backgroundColor: '#93C5FD' },
+      ],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+      plugins: { legend: { position: 'bottom' } },
+      scales: { x: { title: { display: true, text: 'Between-Group Std Dev' }, beginAtZero: true } },
+    }
+  });
+})();
+
+// ---- Chart 5b: Radar Families ----
+(function() {
+  const ctx = document.getElementById('chart-radar-families');
+  if (!ctx) return;
+
+  const labels = DATA.question_ids.map(q => q.replace(/_/g, ' '));
+  const claudeModels = DATA.vision_order.filter(n =>
+    n.includes('Opus') || n.includes('Sonnet') || n.includes('Haiku'));
+  const novaModels = DATA.vision_order.filter(n => n.includes('Nova'));
+
+  // Average profiles per vision model (across embeddings)
+  function avgProfile(visionName) {
+    const exps = DATA.all_exps.filter(e => e.vision === visionName);
+    if (exps.length === 0) return DATA.question_ids.map(() => 0);
+    // Need per-question means from q_matrices
+    const vIdx = DATA.vision_order.indexOf(visionName);
+    return DATA.question_ids.map(q => {
+      const row = DATA.q_matrices[q][vIdx];
+      const valid = row.filter(v => v !== null);
+      return valid.length > 0 ? valid.reduce((a,b) => a+b, 0) / valid.length : 0;
+    });
+  }
+
+  const claudeColors = ['#1E40AF', '#3B82F6', '#60A5FA', '#2563EB', '#7DD3FC', '#93C5FD'];
+  const novaColors = ['#065F46', '#10B981', '#6EE7B7'];
+
+  const datasets = [];
+  claudeModels.forEach((name, i) => {
+    datasets.push({
+      label: name,
+      data: avgProfile(name),
+      borderColor: claudeColors[i % claudeColors.length],
+      backgroundColor: 'transparent',
+      borderWidth: 2,
+      pointRadius: 3,
+    });
+  });
+  novaModels.forEach((name, i) => {
+    datasets.push({
+      label: name,
+      data: avgProfile(name),
+      borderColor: novaColors[i % novaColors.length],
+      backgroundColor: 'transparent',
+      borderWidth: 2,
+      borderDash: [5, 5],
+      pointRadius: 3,
+    });
+  });
+
+  new Chart(ctx, {
+    type: 'radar',
+    data: { labels, datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      scales: { r: { beginAtZero: false } },
+      plugins: { legend: { position: 'bottom' } },
+    }
+  });
+})();
+
+// ---- Chart 6a: Cost vs Distance Scatter (THE KEY CHART) ----
+(function() {
+  const ctx = document.getElementById('chart-cost-scatter');
+  if (!ctx) return;
+
+  const consensusData = DATA.all_exps.filter(e => !e.is_outlier).map(e => ({
+    x: e.cost, y: e.dist,
+    r: Math.max(4, Math.min(20, e.time_s / 30)),
+    exp: e.exp, vision: e.vision, embedding: e.embedding, time: e.time_s,
+  }));
+  const outlierData = DATA.all_exps.filter(e => e.is_outlier).map(e => ({
+    x: e.cost, y: e.dist,
+    r: Math.max(4, Math.min(20, e.time_s / 30)),
+    exp: e.exp, vision: e.vision, embedding: e.embedding, time: e.time_s,
+  }));
+
+  new Chart(ctx, {
+    type: 'bubble',
+    data: {
+      datasets: [
+        {
+          label: 'Consensus',
+          data: consensusData,
+          backgroundColor: C_CONSENSUS + '80',
+          borderColor: C_CONSENSUS,
+          borderWidth: 1,
+        },
+        {
+          label: 'Outlier',
+          data: outlierData,
+          backgroundColor: C_OUTLIER + '80',
+          borderColor: C_OUTLIER,
+          borderWidth: 1,
+        },
+      ],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      scales: {
+        x: {
+          type: 'logarithmic',
+          title: { display: true, text: 'Estimated Cost (USD, log scale)' },
+        },
+        y: {
+          title: { display: true, text: 'Distance from Centroid' },
+          beginAtZero: true,
+        },
+      },
+      plugins: {
+        tooltip: {
+          callbacks: {
+            label: (ctx) => {
+              const d = ctx.raw;
+              return [
+                `Exp ${d.exp}: ${d.vision} + ${d.embedding}`,
+                `Cost: $${d.x.toFixed(2)}, Dist: ${d.y.toFixed(3)}`,
+                `Time: ${d.time.toFixed(0)}s`,
+              ];
+            }
+          }
+        },
+        annotation: {
+          annotations: {
+            idealZone: {
+              type: 'box',
+              xMin: 0.01, xMax: 0.15,
+              yMin: 0, yMax: DATA.threshold * 0.6,
+              backgroundColor: 'rgba(16,185,129,0.08)',
+              borderColor: C_CONSENSUS,
+              borderWidth: 1,
+              borderDash: [6, 4],
+              label: {
+                display: true,
+                content: 'Ideal Zone',
+                position: { x: 'start', y: 'start' },
+                color: '#065F46',
+                font: { size: 12, weight: 'bold' },
+              }
+            },
+            thresholdLine: {
+              type: 'line',
+              yMin: DATA.threshold, yMax: DATA.threshold,
+              borderColor: C_OUTLIER, borderWidth: 1, borderDash: [4, 4],
+              label: { display: true, content: 'Outlier Threshold', position: 'end' },
+            }
+          }
+        },
+        legend: { position: 'bottom' },
+      },
+    }
+  });
+})();
+
+// ---- Chart 6c: Cost Bar + Line ----
+(function() {
+  const ctx = document.getElementById('chart-cost-bar-line');
+  if (!ctx) return;
+
+  const names = DATA.vision_order.filter(n => DATA.vision_cost_dist[n]);
+  const costs = names.map(n => DATA.vision_cost_dist[n].avg_cost);
+  const dists = names.map(n => DATA.vision_cost_dist[n].avg_dist);
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: names,
+      datasets: [
+        {
+          label: 'Avg Cost (USD)',
+          data: costs,
+          backgroundColor: C_PRIMARY + '80',
+          borderColor: C_PRIMARY,
+          borderWidth: 1,
+          yAxisID: 'y',
+          order: 2,
+        },
+        {
+          label: 'Avg Centroid Distance',
+          data: dists,
+          type: 'line',
+          borderColor: C_OUTLIER,
+          backgroundColor: C_OUTLIER,
+          pointRadius: 5,
+          borderWidth: 2,
+          yAxisID: 'y1',
+          order: 1,
+        },
+      ],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'bottom' } },
+      scales: {
+        y: {
+          type: 'linear', position: 'left', beginAtZero: true,
+          title: { display: true, text: 'Avg Cost (USD)' },
+        },
+        y1: {
+          type: 'linear', position: 'right', beginAtZero: true,
+          title: { display: true, text: 'Avg Centroid Distance' },
+          grid: { drawOnChartArea: false },
+        },
+      },
+    }
+  });
+})();
+</script>
+
+</body>
+</html>
