@@ -75,6 +75,9 @@ uv.lock
 # IDE and tooling
 .claude/
 
+# API keys (real keys file - use api_keys.example.json as template)
+api_keys.json
+
 # Source specification documents (reference only)
 *.pdf
 *.docx

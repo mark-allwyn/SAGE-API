@@ -1,5 +1,7 @@
 """Shared pytest fixtures for the test suite."""
 
+import json
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -53,6 +55,27 @@ def valid_test_request():
             "vision_model": "gpt-4o",
         },
     }
+
+
+@pytest.fixture
+def api_keys_file(tmp_path):
+    """Create a temporary API keys file for testing."""
+    keys = {"test-key-valid": "test-client", "test-key-admin": "admin-client"}
+    keys_path = tmp_path / "test_keys.json"
+    keys_path.write_text(json.dumps(keys))
+    return str(keys_path)
+
+
+@pytest.fixture
+def enable_auth(monkeypatch, api_keys_file):
+    """Enable auth via file-based keys and return a valid key."""
+    from sage.auth import _clear_keys_cache
+    from sage.config import get_settings
+
+    monkeypatch.setattr(get_settings(), "api_keys_file", api_keys_file)
+    monkeypatch.setattr(get_settings(), "api_keys", "")
+    _clear_keys_cache()
+    return "test-key-valid"
 
 
 @pytest.fixture

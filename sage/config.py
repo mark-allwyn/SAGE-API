@@ -30,6 +30,10 @@ class Settings(BaseSettings):
         if o.strip()
     ]
 
+    # Authentication (both empty = auth disabled)
+    api_keys: str = os.getenv("SAGE_API_KEYS", "")        # Inline JSON: {"key": "client-name"}
+    api_keys_file: str = os.getenv("SAGE_API_KEYS_FILE", "")  # Path to JSON keys file
+
     # Default LLM Settings
     default_generation_provider: str = os.getenv("DEFAULT_GENERATION_PROVIDER", "openai")
     default_generation_model: str = os.getenv("DEFAULT_GENERATION_MODEL", "gpt-4o")

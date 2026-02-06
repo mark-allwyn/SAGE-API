@@ -9,9 +9,10 @@ Elicitation of Likert Ratings" (Maier et al., 2025).
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
+from .auth import get_api_keys, verify_api_key
 from .config import SUPPORTED_MODELS, get_settings
 from .exceptions import ConfigurationError, ProviderError, ValidationError
 
@@ -56,6 +57,16 @@ async def lifespan(app: FastAPI):
         logger.warning("OpenAI is default provider but OPENAI_API_KEY is not set")
     if settings.default_generation_provider == "bedrock" and not settings.aws_region:
         logger.warning("Bedrock is default provider but AWS_REGION is not set")
+
+    # Log authentication status
+    keys = get_api_keys()
+    if keys is not None:
+        logger.info("API authentication: ENABLED (%d client keys loaded)", len(keys))
+    else:
+        logger.info(
+            "API authentication: DISABLED (set SAGE_API_KEYS or SAGE_API_KEYS_FILE to enable)"
+        )
+
     yield
     # Shutdown
 
@@ -109,6 +120,7 @@ Test a product concept with synthetic consumer personas.
 )
 async def test_concept(
     request: TestConceptRequest,
+    client_name: str | None = Depends(verify_api_key),
 ) -> FullResponse | MinimalResponse:
     """
     Test a product concept with synthetic consumer personas.
@@ -120,7 +132,11 @@ async def test_concept(
         FullResponse if verbose=true, MinimalResponse otherwise
     """
     try:
+        logger.info("Client: %s | Processing concept: %s", client_name, request.concept.name)
         result = await orchestrator.process_request(request)
+        # Thread client identity into response meta
+        if hasattr(result, "meta") and result.meta is not None:
+            result.meta.client = client_name
         return result
     except ProviderError as e:
         logger.exception("Provider error during concept test")
@@ -157,7 +173,9 @@ async def health_check() -> dict[str, str]:
     summary="List supported models",
     description="Get a list of supported models for each provider and capability.",
 )
-async def list_models() -> dict:
+async def list_models(
+    client_name: str | None = Depends(verify_api_key),
+) -> dict:
     """List supported models by provider."""
     return SUPPORTED_MODELS
 
@@ -167,7 +185,9 @@ async def list_models() -> dict:
     summary="API information",
     description="Get information about the API and its configuration.",
 )
-async def api_info() -> dict:
+async def api_info(
+    client_name: str | None = Depends(verify_api_key),
+) -> dict:
     """Get API information."""
     return {
         "name": "SAGE API",

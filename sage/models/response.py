@@ -53,6 +53,7 @@ class Meta(BaseModel):
     concept_name: str
     processing_time_ms: int = Field(ge=0)
     providers: ProviderInfo | None = None
+    client: str | None = None
 
 
 class MinimalResponse(BaseModel):
