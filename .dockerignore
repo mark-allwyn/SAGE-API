@@ -32,9 +32,9 @@ htmlcov
 .tox
 .nox
 
-# Environment files (use build args or secrets instead)
-.env
-.env.local
+# Environment files and secrets (use build args or secrets instead)
+.env*
+api_keys.json
 
 # Documentation
 *.md

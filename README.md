@@ -24,8 +24,9 @@ SAGE simulates how real consumers would respond to product concepts by:
 - **Rich Output**: Detailed metrics, distributions, and optional raw dataset export
 - **Auto-Generated Reports**: Markdown reports with concept description, insights, distribution analysis, sample responses, and appendix with survey scales
 - **Async Concurrency**: Semaphore-based parallelism with configurable concurrency limits for personas, questions, and SSR processing
+- **Bearer Token Auth**: Multi-client API key authentication with hot-reload support
 - **Environment-Driven Config**: All model and processing settings configurable via `.env`
-- **Docker Ready**: Production-ready containerization
+- **Docker Ready**: Production-ready containerization with AWS App Runner deployment guide
 
 ## Quick Start
 
@@ -188,6 +189,28 @@ Use SQL-like expressions to target specific demographics:
 
 Filters are applied after LLM generation. Only matched personas contribute to metrics and scoring.
 
+## Authentication
+
+SAGE supports Bearer token authentication with multiple API keys. Configure via environment variables or a JSON file:
+
+```bash
+# Option 1: Inline JSON (ideal for Docker/cloud - takes priority)
+SAGE_API_KEYS='{"sk-sage-key1": "client-a", "sk-sage-key2": "client-b"}'
+
+# Option 2: Path to JSON file (supports hot-reload without restart)
+SAGE_API_KEYS_FILE=api_keys.json
+```
+
+Leave both empty to disable authentication (development mode).
+
+Authenticated requests use Bearer tokens:
+
+```bash
+curl http://localhost:8000/api/v1/info -H "Authorization: Bearer sk-sage-key1"
+```
+
+The `/health` endpoint is always public. All other endpoints require authentication when keys are configured.
+
 ## Configuration
 
 ### Environment Variables
@@ -201,9 +224,7 @@ Filters are applied after LLM generation. Only matched personas contribute to me
 | **OpenAI** | | |
 | `OPENAI_API_KEY` | required (if using OpenAI) | OpenAI API key |
 | **AWS Bedrock** | | |
-| `AWS_ACCESS_KEY_ID` | required (if using Bedrock) | AWS access key |
-| `AWS_SECRET_ACCESS_KEY` | required (if using Bedrock) | AWS secret key |
-| `AWS_REGION` | `us-east-1` | AWS region (e.g. `eu-central-1`) |
+| `AWS_REGION` | `us-east-1` | AWS region (e.g. `eu-central-1`). Credentials use boto3 default chain (IAM role on AWS, CLI profile locally). |
 | **Default Models** | | |
 | `DEFAULT_GENERATION_PROVIDER` | `openai` | Default generation provider |
 | `DEFAULT_GENERATION_MODEL` | `gpt-4o` | Default generation model |
@@ -329,6 +350,7 @@ sage_API/
 │       └── test_api.py        # API tests
 ├── docs/
 │   ├── api_specification_full.docx  # Full API specification
+│   ├── aws_deployment.md            # AWS App Runner deployment guide
 │   ├── SAGE_Business_Case.md        # Business case and cost model
 │   └── 2510.08338v2.pdf             # SSR methodology paper (Maier et al.)
 ├── testing/
@@ -349,7 +371,7 @@ docker build -t sage-api .
 # Run with OpenAI
 docker run -p 8000:8000 -e OPENAI_API_KEY=sk-... sage-api
 
-# Run with Bedrock
+# Run with Bedrock (uses host AWS credentials via default credential chain)
 docker run -p 8000:8000 \
   -e DEFAULT_GENERATION_PROVIDER=bedrock \
   -e DEFAULT_GENERATION_MODEL=eu.anthropic.claude-sonnet-4-5-20250929-v1:0 \
@@ -357,11 +379,18 @@ docker run -p 8000:8000 \
   -e DEFAULT_EMBEDDING_MODEL=amazon.titan-embed-text-v2:0 \
   -e DEFAULT_VISION_PROVIDER=bedrock \
   -e DEFAULT_VISION_MODEL=eu.anthropic.claude-sonnet-4-5-20250929-v1:0 \
-  -e AWS_ACCESS_KEY_ID=AKIA... \
-  -e AWS_SECRET_ACCESS_KEY=... \
   -e AWS_REGION=eu-central-1 \
+  -v ~/.aws:/root/.aws:ro \
   sage-api
 ```
+
+## Deployment
+
+For local development, use Docker or `uvicorn` directly. For production, see the AWS deployment guide:
+
+- **[AWS Deployment Guide](docs/aws_deployment.md)** - Step-by-step App Runner deployment with pay-per-request pricing (~$1/month idle)
+
+AWS credentials are handled by the boto3 default credential chain - IAM roles on AWS, CLI profiles locally. No credential env vars needed.
 
 ## License
 
@@ -371,4 +400,5 @@ MIT
 
 - **SSR Methodology Paper**: [`docs/2510.08338v2.pdf`](docs/2510.08338v2.pdf) - Maier et al., "LLMs Reproduce Human Purchase Intent via Semantic Similarity Elicitation of Likert Ratings" ([arXiv:2510.08338](https://arxiv.org/abs/2510.08338), 2025)
 - **API Specification**: [`docs/api_specification_full.docx`](docs/api_specification_full.docx)
+- **AWS Deployment**: [`docs/aws_deployment.md`](docs/aws_deployment.md)
 - **Business Case**: [`docs/SAGE_Business_Case.md`](docs/SAGE_Business_Case.md)

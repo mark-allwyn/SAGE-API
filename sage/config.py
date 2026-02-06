@@ -16,8 +16,7 @@ class Settings(BaseSettings):
     openai_api_key: str = os.getenv("OPENAI_API_KEY", "")
 
     # AWS/Bedrock Configuration
-    aws_access_key_id: str = os.getenv("AWS_ACCESS_KEY_ID", "")
-    aws_secret_access_key: str = os.getenv("AWS_SECRET_ACCESS_KEY", "")
+    # Credentials: boto3 default chain (IAM role on AWS, CLI profile locally).
     aws_region: str = os.getenv("AWS_REGION", "us-east-1")
 
     # API Configuration
@@ -60,6 +59,7 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
+        extra = "ignore"
 
 
 @lru_cache
